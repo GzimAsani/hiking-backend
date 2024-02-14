@@ -1,11 +1,12 @@
 import * as http from 'http'
 import * as fs from 'fs';
 import { HTTP_CODE } from '../enums/http-status-codes';
+import User from '../models/User';
 
 export class HttpRequestHandlers {
     data = async (req: any, res: any) => {
-        const user = new UserRepo()
-        const useri = await user.getUser();
+        const user = new User()
+        const useri = await user.getUser(req, res);
     
         res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
         res.write(JSON.stringify(useri));
@@ -13,7 +14,7 @@ export class HttpRequestHandlers {
       }
     
       login = async (req: any, res: any) => { 
-        const user = new UserRepo()
+        const user = new User()
         user.login(req, res);
       }
     
@@ -30,8 +31,8 @@ export class HttpRequestHandlers {
       ): void => {
         req.on("data", (data: any) => {
           const userObj: any = JSON.parse(data);
-          const userRepo = new UserRepo();
-          userRepo.saveUser(userObj).then((result: string) => {
+          const user = new User();
+          user.saveUser(userObj).then((result: string) => {
             res.writeHead(HTTP_CODE.OK);
             res.write(JSON.stringify(result));
             res.end();
@@ -44,9 +45,9 @@ export class HttpRequestHandlers {
     
       }
       getLogedUser = (req: any, res: http.ServerResponse): void => {
-        const userRepo = new UserRepo
+        const User = new User
         if (req.user) {
-          userRepo.getUserByEmail(req.user).then((user) => {
+          User.getUserByEmail(req.user).then((user) => {
             res.writeHead(HTTP_CODE.OK);
             if (!user) {
               res.write(

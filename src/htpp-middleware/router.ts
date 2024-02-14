@@ -1,27 +1,13 @@
-import { HttpRequestHandlers } from "../htpp-middleware/request-handlers";
+import express from 'express';
+import { UserController } from '../controllers/UserController';
 
-export class Router {
-  httpRequestHandlers: HttpRequestHandlers = new HttpRequestHandlers();
-  public routes: any = {
-    "POST/signup": {
-      controller: this.httpRequestHandlers.signup,
-      authorized: false,
-    },
-    "POST/login": {
-      controller: this.httpRequestHandlers.login,
-      authorized: false,
-    },
-    "GET/user": {
-      controller: this.httpRequestHandlers.getLogedUser,
-      authorized: true,
-    },
-    "GET/data": {
-        controller: this.httpRequestHandlers.data,
-        authorized: false
-    },
-    default: {
-      controller: this.httpRequestHandlers.noResponse,
-      authorized: false,
-    },
-  };
-}
+const router = express.Router();
+
+// Define routes
+router.get('/user/:userId', UserController.getUser);
+router.post('/user', UserController.saveUser);
+router.delete('/user/:userId', UserController.deleteUser);
+router.get('/userByEmail/:email', UserController.getUserByEmail);
+router.post('/login', UserController.login);
+
+export default router;
