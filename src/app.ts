@@ -1,4 +1,5 @@
 import express, {Application, Request, Response, NextFunction} from 'express';
+import './db/mongo'
 
 const app: express.Application = express();
 const add = (a: number, b: number): number => a + b
