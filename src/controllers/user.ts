@@ -1,65 +1,102 @@
-import { Request, Response } from 'express';
 import UserModel from '../models/User';
 import bcrypt from 'bcrypt';
 import { TokenService } from '../services/tokenService';
 import { HTTP_CODE } from '../enums/http-status-codes';
 
 export class UserController {
-    async getUsers(req: Request, res: Response) {
+    async getUsers() {
         try {
             const users = await UserModel.find();
-            res.status(HTTP_CODE.OK).json(users);
-            
+            return users;
         } catch (error) {
             console.error('Error:', error);
-            res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+            throw new Error('Internal Server Error');
         }
     }
 
-    async login(req: Request, res: Response) {
-        const { email, password } = req.body;
+    async getUserById(userId: string) {
         try {
-            const user = await UserModel.findOne({ email: email });
-            
-            if (!user) {
-                res.status(HTTP_CODE.NotFound).json({ message: 'User not found' });
-                return;
+            const user = await UserModel.findById(userId);
+            return user;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
+    async signup(userObj: any) {
+        try {
+            const { username, email, password } = userObj;
+            const existingUser = await UserModel.findOne({ email });
+            if (existingUser) {
+                throw new Error('User already exists');
             }
 
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
-                res.status(HTTP_CODE.Unauthorized).json({ message: 'Invalid email or password' });
-                return;
-            }
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const newUser = new UserModel({
+                username,
+                email,
+                password: hashedPassword
+            });
 
-            const tokenService = new TokenService();
-            const token = tokenService.generateLoginToken(email);
-
-            res.status(HTTP_CODE.OK).json({ message: 'Login successful', token });
-
+            await newUser.save();
+            return { message: 'User created successfully' };
         } catch (error) {
             console.error('Error:', error);
-            res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+            throw new Error('Internal Server Error');
         }
     }
 
-    async saveUser(userObj: any) {
+    async deleteUser(userId: string) {
         try {
-            const newUser = await UserModel.create(userObj);
-            return newUser;
+            await UserModel.findByIdAndDelete(userId);
         } catch (error) {
             console.error('Error:', error);
-            throw 'Internal Server Error';
+            throw new Error('Internal Server Error');
         }
     }
-    
+
     async getUserByEmail(email: string) {
         try {
             const user = await UserModel.findOne({ email });
             return user;
         } catch (error) {
             console.error('Error:', error);
-            throw 'Internal Server Error';
+            throw new Error('Internal Server Error');
+        }
+    }    
+
+    async login(email: string, password: string) {
+        try {
+            const user = await UserModel.findOne({ email });
+            if (!user) {
+                return {
+                    statusCode: HTTP_CODE.NotFound,
+                    data: { message: 'User not found' }
+                };
+            }
+
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (!passwordMatch) {
+                return {
+                    statusCode: HTTP_CODE.Unauthorized,
+                    data: { message: 'Invalid email or password' }
+                };
+            }
+
+            const tokenService = new TokenService();
+            const token = tokenService.generateLoginToken(email);
+
+            return {
+                statusCode: HTTP_CODE.OK,
+                data: { message: 'Login successful', token }
+            };
+        } catch (error) {
+            console.error('Error:', error);
+            return {
+                statusCode: HTTP_CODE.InternalServerError,
+                data: { error: 'Internal Server Error' }
+            };
         }
     }
 }

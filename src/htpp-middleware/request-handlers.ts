@@ -1,82 +1,138 @@
 import * as http from 'http';
 import * as fs from 'fs';
-import { HTTP_CODE } from '../enums/http-status-codes';
 import { UserController } from '../controllers/user';
+import { HTTP_CODE } from '../enums/http-status-codes';
 
 export class HttpRequestHandlers {
-    data = async (req: any, res: any) => {
+    static data = async (req: http.IncomingMessage, res: http.ServerResponse) => {
         try {
             const userController = new UserController();
-            const user = await userController.getUsers(req, res);
-
-            if (!res.headersSent) {
-                res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
-                res.write(JSON.stringify(user));
-                res.end();
-            }
+            const users = await userController.getUsers();
+            res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(users));
         } catch (error) {
             console.error('Error:', error);
-            if (!res.headersSent) {
-                res.writeHead(HTTP_CODE.InternalServerError);
-                res.end(JSON.stringify({ error: 'Internal Server Error' }));
-            }
-        }
-    }
-
-    login = async (req: any, res: any) => {
-        try {
-            const userController = new UserController();
-            await userController.login(req, res);
-        } catch (error) {
-            console.error('Error:', error);
-            res.writeHead(HTTP_CODE.InternalServerError);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
     }
 
-    noResponse = (req: any, res: any) => {
-        fs.readFile("./src/404.html", "utf8", (error, content) => {
-            res.writeHead(404, { "Content-Type": "text/html" });
-            res.end(content, "utf-8");
-        });
-    }
-
-    signup = (req: http.ClientRequest, res: http.ServerResponse, reqUrl: any): void => {
-        req.on("data", async (data: any) => {
-            try {
-                const userObj: any = JSON.parse(data);
-                const userController = new UserController();
-                const result = await userController.saveUser(userObj);
-                res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
-                res.write(JSON.stringify(result));
-                res.end();
-            } catch (error) {
-                console.error('Error:', error);
-                res.writeHead(HTTP_CODE.InternalServerError);
-                res.end(JSON.stringify({ error: 'Internal Server Error' }));
-            }
-        });
-    }
-
-    getLogedUser = (req: any, res: http.ServerResponse): void => {
+    static getUser = async (req: http.IncomingMessage, res: http.ServerResponse) => {
         try {
-            const useController = new UserController();
-            if (req.user) {
-                const user = useController.getUserByEmail(req.user);
-                res.writeHead(HTTP_CODE.OK);
-                if (!user) {
-                    res.write(JSON.stringify({ message: `User ${req.user} could not be found` }));
-                } else {
-                    res.write(JSON.stringify(user));
-                }
-                res.end();
+            const userId = req.url?.split('/')[2];
+            if (!userId) {
+                res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User ID is required' }));
+                return;
+            }
+            const userController = new UserController();
+            const user = await userController.getUserById(userId);
+            if (!user) {
+                res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ message: `User ${userId} not found` }));
             } else {
-                res.writeHead(HTTP_CODE.Unauthorized);
-                res.end();
+                res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(user));
             }
         } catch (error) {
             console.error('Error:', error);
-            res.writeHead(HTTP_CODE.InternalServerError);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+
+    static signup = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        try {
+            let data = '';
+            req.on('data', chunk => {
+                data += chunk;
+            });
+            req.on('end', async () => {
+                try {
+                    const userObj: any = JSON.parse(data);
+                    const userController = new UserController();
+                    const result = await userController.signup(userObj);
+                    res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                } catch (error) {
+                    console.error('Error:', error);
+                    res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
+                }
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+
+    static deleteUser = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        try {
+            const userId = req.url?.split('/')[2];
+            if (!userId) {
+                res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User ID is required' }));
+                return;
+            }
+            const userController = new UserController();
+            await userController.deleteUser(userId);
+            res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: `User ${userId} deleted successfully` }));
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+
+    static getUserByEmail = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        try {
+            const userEmail = req.url?.split('/')[2];
+            if (!userEmail) {
+                res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'User email is required' }));
+                return;
+            }
+            const userController = new UserController();
+            const user = await userController.getUserByEmail(userEmail);
+            if (!user) {
+                res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ message: `User ${userEmail} not found` }));
+            } else {
+                res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(user));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    }
+    
+
+    static login = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+        try {
+            let data = '';
+            req.on('data', chunk => {
+                data += chunk;
+            });
+            req.on('end', async () => {
+                try {
+                    const { email, password } = JSON.parse(data);
+                    const userController = new UserController();
+                    const result = await userController.login(email, password);
+                    res.writeHead(result.statusCode, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result.data));
+                } catch (error) {
+                    console.error('Error:', error);
+                    res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
+                }
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
     }

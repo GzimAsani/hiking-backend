@@ -1,25 +1,17 @@
 import mongoose from "mongoose";
-<<<<<<< HEAD
 import bcrypt from "bcrypt";
-=======
->>>>>>> f84a252a769eb13378f251e927804b0ad2f746ca
 
 const User = new mongoose.Schema({
     username: { 
         type: String, 
         required: true, 
-<<<<<<< HEAD
         unique: true,
         minlength: [6, 'Username must be at least 6 characters long'],
         maxlength: [50, 'Username cannot exceed 50 characters']
-=======
-        unique: true 
->>>>>>> f84a252a769eb13378f251e927804b0ad2f746ca
     },
     email: { 
         type: String, 
         required: true, 
-<<<<<<< HEAD
         unique: true,
         validate: {
             validator: (email: string) => {
@@ -37,13 +29,6 @@ const User = new mongoose.Schema({
             },
             message: 'Password must be at least 8 characters long'
         }
-=======
-        unique: true 
-    },
-    password: { 
-        type: String, 
-        required: true 
->>>>>>> f84a252a769eb13378f251e927804b0ad2f746ca
     },
     created_at: { 
         type: Date, 
@@ -70,7 +55,6 @@ const User = new mongoose.Schema({
     }],
     hikeBuddy: {
         type: Boolean,
-<<<<<<< HEAD
         default: false,
         validate: {
             validator: (value: any) => {
@@ -97,12 +81,7 @@ User.pre("save", function(next) {
         });
 });
 
-=======
-        default: false
-    }
-});
 
->>>>>>> f84a252a769eb13378f251e927804b0ad2f746ca
 const UserModel = mongoose.model("User", User);
 
 export default UserModel;
