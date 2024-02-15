@@ -76,7 +76,7 @@ export class UserController {
                 };
             }
 
-            const passwordMatch = await bcrypt.compare(password, user.password);
+            const passwordMatch = await bcrypt.hash(password, 10);
             if (!passwordMatch) {
                 return {
                     statusCode: HTTP_CODE.Unauthorized,
