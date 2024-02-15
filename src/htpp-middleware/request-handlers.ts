@@ -88,7 +88,9 @@ export class HttpRequestHandlers {
 
     static getUserByEmail = async (req: http.IncomingMessage, res: http.ServerResponse) => {
         try {
-            const userEmail = req.url?.split('/')[2];
+            const urlParts = req.url?.split('/');
+            const userEmail = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
+            
             if (!userEmail) {
                 res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'User email is required' }));

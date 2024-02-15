@@ -5,7 +5,7 @@ import router from './htpp-middleware/router';
 const app: express.Application = express();
 
 app.use(express.json());
-app.use('/', router);
+app.use("/", router)
 
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
