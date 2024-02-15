@@ -1,10 +1,10 @@
 import * as http from 'http';
-import * as fs from 'fs';
 import { UserController } from '../controllers/user';
 import { HTTP_CODE } from '../enums/http-status-codes';
+import { Request, Response } from 'express';
 
 export class HttpRequestHandlers {
-    static data = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    static data = async (req: Request, res: Response) => {
         try {
             const userController = new UserController();
             const users = await userController.getUsers();
@@ -17,7 +17,7 @@ export class HttpRequestHandlers {
         }
     }
 
-    static getUser = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    static getUser = async (req: Request, res: Response) => {
         try {
             const userId = req.url?.split('/')[2];
             if (!userId) {
@@ -41,33 +41,38 @@ export class HttpRequestHandlers {
         }
     }
 
-    static signup = async (req: http.IncomingMessage, res: http.ServerResponse) => {
-        try {
-            let data = '';
-            req.on('data', chunk => {
-                data += chunk;
-            });
-            req.on('end', async () => {
-                try {
-                    const userObj: any = JSON.parse(data);
-                    const userController = new UserController();
-                    const result = await userController.signup(userObj);
-                    res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(result));
-                } catch (error) {
-                    console.error('Error:', error);
-                    res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
-                }
-            });
-        } catch (error) {
-            console.error('Error:', error);
-            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Internal Server Error' }));
-        }
-    }
+    static signup = async (req: Request, res: Response) => {
+      try {
+          let data = '';
+          req.on('data', chunk => {
+              data += chunk;
+          });
+          req.on('end', async () => {
+              try {
+                  console.log('Received data:', data); // Log the received data
+                  const userObj: any = JSON.parse(data);
+                  console.log('Parsed user object:', userObj); // Log the parsed user object
+  
+                  const userController = new UserController();
+                  const result = await userController.signup(userObj);
+                  console.log('Signup result:', result); // Log the signup result
+  
+                  res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify(result));
+              } catch (error) {
+                  console.error('Error:', error);
+                  res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Internal Server Error' }));
+              }
+          });
+      } catch (error) {
+          console.error('Error:', error);
+          res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Internal Server Error' }));
+      }
+  }
 
-    static deleteUser = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    static deleteUser = async (req: Request, res: Response) => {
         try {
             const userId = req.url?.split('/')[2];
             if (!userId) {
@@ -86,7 +91,7 @@ export class HttpRequestHandlers {
         }
     }
 
-    static getUserByEmail = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    static getUserByEmail = async (req: Request, res: Response) => {
         try {
             const urlParts = req.url?.split('/');
             const userEmail = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
@@ -113,7 +118,7 @@ export class HttpRequestHandlers {
     }
     
 
-    static login = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    static login = async (req: Request, res: Response) => {
         try {
             let data = '';
             req.on('data', chunk => {

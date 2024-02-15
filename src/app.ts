@@ -4,7 +4,6 @@ import router from './htpp-middleware/router';
 
 const app: express.Application = express();
 
-app.use(express.json());
 app.use("/", router)
 
 
