@@ -30,6 +30,45 @@ const User = new mongoose.Schema({
             message: 'Password must be at least 8 characters long'
         }
     },
+    description: {
+        type: String
+    },
+    profileImg: {
+        type: String
+    },
+    age: {
+        type: Number,
+        min: [1, 'Age cannot be less than 1'],
+        max: [150, 'Age cannot be greater than 150']
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female']
+    },
+    location: {
+        type: String
+    },
+    availability: {
+        type: String
+    },
+    skillLevel: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'advanced']
+    },
+    interests: [String],
+    emergencyContact: {
+        name: String,
+        phoneNumber: String
+    },
+    socialMedia: {
+        facebook: String,
+        twitter: String,
+        instagram: String
+    },
+    hikingExperience: {
+        type: String
+    },
+    equipment: [String],
     created_at: { 
         type: Date, 
         default: Date.now 
