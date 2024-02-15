@@ -1,23 +1,29 @@
-import * as jwt from "jsonwebtoken";
-import { get as getConfig } from "config";
+import jwt from "jsonwebtoken";
+import { config } from "config";
 
 export class TokenService {
   generatePasswordResetToken = (email: string): string => {
-    return jwt.sign({ email: email }, getConfig("app_secret"), {
-      expiresIn: getConfig("token_expire"),
+    return jwt.sign({ email: email }, config.app_secret, {
+      expiresIn: config.token_expire,
     });
   };
 
-  generateLoginToken = (email: string): string => {
-    return jwt.sign({ email: email }, getConfig("app_secret"), {
-      expiresIn: getConfig("token_expire"),
+  generateVerifyEmailToken = (email: string): string => {
+    return jwt.sign({ email: email }, config.app_secret, {
+      expiresIn: config.token_expire,
+    });
+  };
+
+  generateLoginToken = (userId: string): string => {
+    return jwt.sign({ userId: userId }, config.app_secret, {
+      expiresIn: config.token_expire,
     });
   };
 
   verifyToken = (token: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-      jwt.verify(token, getConfig("app_secret"), (err, decoded) => {
-        if (err) reject(err);
+      jwt.verify(token, config.app_secret, (err: any, decoded: any) => {
+        if (err) resolve(false);
         else resolve(decoded);
       });
     });
