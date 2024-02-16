@@ -3,7 +3,7 @@ import './db/mongo';
 import router from './htpp-middleware/router';
 import cors from 'cors'
 
-const app: express.Application = express();
+const app = express();
 app.use(cors({
     origin: '*'
   }));

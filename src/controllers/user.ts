@@ -26,19 +26,21 @@ export class UserController {
 
     async signup(userObj: any) {
         try {
-            const { username, email, password } = userObj;
+            const { firstName, lastName, email, password } = userObj;
+            if (!firstName || !lastName) {
+                throw new Error('First name and last name are required');
+            }
             const existingUser = await UserModel.findOne({ email });
             if (existingUser) {
                 throw new Error('User already exists');
             }
-
             const hashedPassword = await bcrypt.hash(password, 10);
             const newUser = new UserModel({
-                username,
+                firstName,
+                lastName,
                 email,
                 password: hashedPassword
             });
-
             await newUser.save();
             return { message: 'User created successfully' };
         } catch (error) {

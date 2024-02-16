@@ -2,12 +2,17 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 const User = new mongoose.Schema({
-    username: { 
-        type: String, 
-        required: true, 
-        unique: true,
-        minlength: [6, 'Username must be at least 6 characters long'],
-        maxlength: [50, 'Username cannot exceed 50 characters']
+    firstName: {
+        type: String,
+        required: true,
+        minlength: [1, 'First name must be at least 2 character long'],
+        maxlength: [20, 'First name cannot exceed 20 characters']
+    },
+    lastName: {
+        type: String,
+        required: true,
+        minlength: [1, 'Last name must be at least 1 character long'],
+        maxlength: [20, 'Last name cannot exceed 20 characters']
     },
     email: { 
         type: String, 
