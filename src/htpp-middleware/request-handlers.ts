@@ -49,13 +49,10 @@ export class HttpRequestHandlers {
           });
           req.on('end', async () => {
               try {
-                  console.log('Received data:', data); // Log the received data
                   const userObj: any = JSON.parse(data);
-                  console.log('Parsed user object:', userObj); // Log the parsed user object
   
                   const userController = new UserController();
                   const result = await userController.signup(userObj);
-                  console.log('Signup result:', result); // Log the signup result
   
                   res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify(result));
