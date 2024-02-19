@@ -34,7 +34,7 @@ export class UserController {
             }
             const existingUser = await UserModel.findOne({ email });
             if (existingUser) {
-                const customError:any =  new Error('User already exists');
+                const customError:any =  new Error('This email has been registered!');
                 customError.code = HTTP_CODE.NotFound
 
                 throw customError
