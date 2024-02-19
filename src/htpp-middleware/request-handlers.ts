@@ -62,8 +62,9 @@ export class HttpRequestHandlers {
                 console.log(new Error(err).message)
                 
                   //console.error('Error:', error);
-                res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: new Error(err).message}));
+                  
+                res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message? err.message: "Internal Server Error"}));
               }
           });
     //   } catch (error) {
