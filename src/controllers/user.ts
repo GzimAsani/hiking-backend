@@ -25,7 +25,6 @@ export class UserController {
     }
 
     async signup(userObj: any) {
-        try {
             const { firstName, lastName, email, password } = userObj;
             if (!firstName || !lastName) {
                 throw new Error('First name and last name are required');
@@ -43,10 +42,6 @@ export class UserController {
             });
             await newUser.save();
             return { message: 'User created successfully' };
-        } catch (error) {
-            console.error('Error:', error);
-            throw new Error('Internal Server Error');
-        }
     }
 
     async deleteUser(userId: string) {

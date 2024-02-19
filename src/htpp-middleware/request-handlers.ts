@@ -2,6 +2,7 @@ import * as http from 'http';
 import { UserController } from '../controllers/user';
 import { HTTP_CODE } from '../enums/http-status-codes';
 import { Request, Response } from 'express';
+import { stringify } from 'querystring';
 
 export class HttpRequestHandlers {
     static data = async (req: Request, res: Response) => {
@@ -42,7 +43,7 @@ export class HttpRequestHandlers {
     }
 
     static signup = async (req: Request, res: Response) => {
-      try {
+    //   try {
           let data = '';
           req.on('data', chunk => {
               data += chunk;
@@ -56,17 +57,20 @@ export class HttpRequestHandlers {
   
                   res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify(result));
-              } catch (error) {
-                  console.error('Error:', error);
-                  res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ error: 'Internal Server Error' }));
+              } catch (err:any) {
+                console.log("AFTER THIS ERROR SHOULD APPEAR")
+                console.log(new Error(err).message)
+                
+                  //console.error('Error:', error);
+                res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: new Error(err).message}));
               }
           });
-      } catch (error) {
-          console.error('Error:', error);
-          res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Internal Server Error' }));
-      }
+    //   } catch (error) {
+    //       console.error('Error:', error);
+    //       res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+    //       res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    //   }
   }
 
     static deleteUser = async (req: Request, res: Response) => {
