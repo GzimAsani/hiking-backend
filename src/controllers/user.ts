@@ -27,19 +27,19 @@ export class UserController {
     async signup(userObj: any) {
             const { firstName, lastName, email, password } = userObj;
             if (!firstName || !lastName) {
-                const customError:any = new Error('First name and last name are required');
+                const customError:any = new Error('First name and last name are required!');
                 customError.code = HTTP_CODE.NotFound;
 
                 throw customError
             }
             const existingUser = await UserModel.findOne({ email });
             if (existingUser) {
-                const customError:any =  new Error('This email has already been registered');
+                const customError:any =  new Error('This email has already been registered!');
                 customError.code = HTTP_CODE.NotFound
 
                 throw customError
             }
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = bcrypt.hashSync(password, 10);
             const newUser = new UserModel({
                 firstName,
                 lastName,
@@ -47,7 +47,7 @@ export class UserController {
                 password: hashedPassword
             });
             await newUser.save();
-            return { message: 'User created successfully' };
+            return { message: 'User created successfully!' };
     }
 
     async deleteUser(userId: string) {
@@ -70,21 +70,20 @@ export class UserController {
     }    
 
     async login(email: string, password: string) {
-        try {
             const user = await UserModel.findOne({ email });
             if (!user) {
-                return {
-                    statusCode: HTTP_CODE.NotFound,
-                    data: { message: 'User not found' }
-                };
+                const customError:any = new Error('User not found!');
+                customError.code = HTTP_CODE.NotFound;
+
+                throw customError
             }
 
-            const passwordMatch = await bcrypt.hash(password, 10);
+            const passwordMatch = await bcrypt.compare(password, user.password);
             if (!passwordMatch) {
-                return {
-                    statusCode: HTTP_CODE.Unauthorized,
-                    data: { message: 'Invalid email or password' }
-                };
+                const customError:any = new Error('Inccorect password!');
+                customError.code = HTTP_CODE.Unauthorized;
+
+                throw customError
             }
 
             const tokenService = new TokenService();
@@ -92,14 +91,7 @@ export class UserController {
 
             return {
                 statusCode: HTTP_CODE.OK,
-                data: { message: 'Login successful', token }
+                data: { message: 'Login successefully!', token }
             };
-        } catch (error) {
-            console.error('Error:', error);
-            return {
-                statusCode: HTTP_CODE.InternalServerError,
-                data: { error: 'Internal Server Error' }
-            };
-        }
     }
 }

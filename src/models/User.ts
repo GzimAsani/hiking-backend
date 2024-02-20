@@ -1,18 +1,13 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 
 const User = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
-        minlength: [1, 'First name must be at least 2 character long'],
-        maxlength: [20, 'First name cannot exceed 20 characters']
     },
     lastName: {
         type: String,
         required: true,
-        minlength: [1, 'Last name must be at least 1 character long'],
-        maxlength: [20, 'Last name cannot exceed 20 characters']
     },
     email: { 
         type: String, 
@@ -108,23 +103,6 @@ const User = new mongoose.Schema({
         }
     }
 });
-
-User.pre("save", function(next) {
-    const user = this;
-    if (!user.isModified("password")) {
-        return next();
-    }
-    
-    bcrypt.hash(user.password, 10)
-        .then((hashedPassword) => {
-            user.password = hashedPassword;
-            next();
-        })
-        .catch((error) => {
-            next(error);
-        });
-});
-
 
 const UserModel = mongoose.model("User", User);
 

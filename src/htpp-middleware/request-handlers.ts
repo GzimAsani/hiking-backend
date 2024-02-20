@@ -121,7 +121,7 @@ export class HttpRequestHandlers {
     
 
     static login = async (req: Request, res: Response) => {
-        try {
+        // try {
             let data = '';
             req.on('data', chunk => {
                 data += chunk;
@@ -133,16 +133,20 @@ export class HttpRequestHandlers {
                     const result = await userController.login(email, password);
                     res.writeHead(result.statusCode, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify(result.data));
-                } catch (error) {
-                    console.error('Error:', error);
-                    res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Internal Server Error' }));
-                }
+                } catch (err:any) {
+                    console.log("AFTER THIS ERROR SHOULD APPEAR")
+                    console.log(new Error(err).message)
+                    
+                      //console.error('Error:', error);
+                      
+                    res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: err.message? err.message: "Internal Server Error"}));
+                  }
             });
-        } catch (error) {
-            console.error('Error:', error);
-            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Internal Server Error' }));
-        }
+        // } catch (error) {
+        //     console.error('Error:', error);
+        //     res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+        //     res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        // }
     }
 }
