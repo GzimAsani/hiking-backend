@@ -25,14 +25,19 @@ export class UserController {
     }
 
     async signup(userObj: any) {
-        try {
             const { firstName, lastName, email, password } = userObj;
             if (!firstName || !lastName) {
-                throw new Error('First name and last name are required');
+                const customError:any = new Error('First name and last name are required');
+                customError.code = HTTP_CODE.NotFound;
+
+                throw customError
             }
             const existingUser = await UserModel.findOne({ email });
             if (existingUser) {
-                throw new Error('User already exists');
+                const customError:any =  new Error('This email has already been registered');
+                customError.code = HTTP_CODE.NotFound
+
+                throw customError
             }
             const hashedPassword = await bcrypt.hash(password, 10);
             const newUser = new UserModel({
@@ -43,10 +48,6 @@ export class UserController {
             });
             await newUser.save();
             return { message: 'User created successfully' };
-        } catch (error) {
-            console.error('Error:', error);
-            throw new Error('Internal Server Error');
-        }
     }
 
     async deleteUser(userId: string) {
