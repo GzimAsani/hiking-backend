@@ -77,7 +77,7 @@ export class UserController {
     async login(email: string, password: string) {
         const user = await UserModel.findOne({ email });
         if (!user) {
-            const customError: any = new Error('User not found!');
+            const customError:any = new Error('User not found!');
             customError.code = HTTP_CODE.NotFound;
 
             throw customError
@@ -85,7 +85,7 @@ export class UserController {
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            const customError: any = new Error('Inccorect password!');
+            const customError:any = new Error('Inccorect password!');
             customError.code = HTTP_CODE.Unauthorized;
 
             throw customError
@@ -93,12 +93,12 @@ export class UserController {
 
         const tokenService = new TokenService();
         const token = tokenService.generateLoginToken(email);
+        const expiresIn = config.token_expire;
 
         return {
             statusCode: HTTP_CODE.OK,
-            data: { message: 'Login successefully!', token }
+            data: { message: 'Login successefully!', user, token , expiresIn }
         };
-
     }
 
     async addFavoriteTrail(userId: string, trailId: string) {
