@@ -226,7 +226,7 @@ export class HttpRequestHandlers {
     }
 
     static deleteReminder = async (req: Request, res: Response) => {
-        const Reminder = require('../models/Reminder');
+        // const Reminder = require('../models/Reminder');
         try {
             const reminderId = req.url?.split('/')[2];
             if (!reminderId) {
@@ -235,13 +235,13 @@ export class HttpRequestHandlers {
                 return;
             }
             const reminderController = new ReminderController();
-            await reminderController.deleteUser(reminderId);
-            if (!reminderController) {
-                res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Reminder not found' }));
-                return;
-            }
-            await Reminder.remove();
+            await reminderController.deleteReminder(reminderId);
+            // if (!reminderController) {
+            //     res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+            //     res.end(JSON.stringify({ error: 'Reminder not found' }));
+            //     return;
+            // }
+            // await Reminder.remove();
             res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ message: `Reminder ${reminderId} deleted successfully` }));
         } catch (error) {

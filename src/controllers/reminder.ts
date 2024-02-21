@@ -42,7 +42,7 @@ export class ReminderController {
             }    
     }
 
-    async deleteUser(reminderId: string) {
+    async deleteReminder(reminderId: string) {
         try {
             await ReminderModel.findByIdAndDelete(reminderId);
         } catch (error) {
