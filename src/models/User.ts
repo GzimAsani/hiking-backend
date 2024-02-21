@@ -9,9 +9,9 @@ const User = new mongoose.Schema({
         type: String,
         required: true,
     },
-    email: { 
-        type: String, 
-        required: true, 
+    email: {
+        type: String,
+        required: true,
         unique: true,
         validate: {
             validator: (email: string) => {
@@ -20,8 +20,8 @@ const User = new mongoose.Schema({
             message: 'Invalid email address'
         }
     },
-    password: { 
-        type: String, 
+    password: {
+        type: String,
         required: true,
         validate: {
             validator: (password: string) => {
@@ -69,27 +69,27 @@ const User = new mongoose.Schema({
         type: String
     },
     equipment: [String],
-    created_at: { 
-        type: Date, 
-        default: Date.now 
+    created_at: {
+        type: Date,
+        default: Date.now
     },
-    favorites: [{ 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Trail' 
+    trailFavorites: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Trail'
     }],
     reviews: [{
-        trail: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Trail' 
+        trail: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Trail'
         },
-        rating: { 
-            type: Number, 
-            required: true, 
-            min: 1, 
-            max: 5 
+        rating: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 5
         },
-        comment: { 
-            type: String 
+        comment: {
+            type: String
         }
     }],
     hikeBuddy: {
