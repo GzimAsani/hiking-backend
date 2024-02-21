@@ -146,6 +146,34 @@ export class HttpRequestHandlers {
         // }
     }
 
+    static updateUser = async (req: Request, res: Response) => {
+        let data = '';
+        req.on('data', chunk => {
+            data += chunk;
+        });
+        req.on('end', async () => {
+            try {
+                const userId = req.params.userId;
+                const updatedFields = JSON.parse(data);
+                if (!userId) {
+                    res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'User ID is required' }));
+                    return;
+                }
+                const userController = new UserController();
+                const result = await userController.updateUser(userId, updatedFields);
+                res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result));
+            } catch (err:any) {
+                console.log("AFTER THIS ERROR SHOULD APPEAR")
+                console.log(new Error(err).message)
+                
+                res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error"}));
+            }
+        });
+    }
+
     static getAllReminders = async (req: Request, res: Response) => {
         try {
             const allReminders = await ReminderModel.find();
