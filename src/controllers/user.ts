@@ -2,9 +2,12 @@ import UserModel from '../models/User';
 import bcrypt from 'bcrypt';
 import { TokenService } from '../services/tokenService';
 import { HTTP_CODE } from '../enums/http-status-codes';
+import mongoose from 'mongoose';
 import { config } from "../config";
 
 export class UserController {
+
+
     async getUsers() {
         try {
             const users = await UserModel.find();
@@ -26,30 +29,30 @@ export class UserController {
     }
 
     async signup(userObj: any) {
-            const { firstName, lastName, email, password, ...rest } = userObj;
-            if (!firstName || !lastName) {
-                const customError:any = new Error('First name and last name are required!');
-                customError.code = HTTP_CODE.NotFound;
+        const { firstName, lastName, email, password, ...rest } = userObj;
+        if (!firstName || !lastName) {
+            const customError: any = new Error('First name and last name are required!');
+            customError.code = HTTP_CODE.NotFound;
 
-                throw customError
-            }
-            const existingUser = await UserModel.findOne({ email });
-            if (existingUser) {
-                const customError:any =  new Error('This email has already been registered!');
-                customError.code = HTTP_CODE.NotFound
+            throw customError
+        }
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            const customError: any = new Error('This email has already been registered!');
+            customError.code = HTTP_CODE.NotFound
 
-                throw customError
-            }
-            const hashedPassword = bcrypt.hashSync(password, 10);
-            const newUser = new UserModel({
-                firstName,
-                lastName,
-                email,
-                password: hashedPassword,
-                ...rest
-            });
-            await newUser.save();
-            return { message: 'User created successfully!' };
+            throw customError
+        }
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const newUser = new UserModel({
+            firstName,
+            lastName,
+            email,
+            password: hashedPassword,
+            ...rest
+        });
+        await newUser.save();
+        return { message: 'User created successfully!' };
     }
 
     async deleteUser(userId: string) {
@@ -69,51 +72,94 @@ export class UserController {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
-    }    
+    }
 
     async login(email: string, password: string) {
-            const user = await UserModel.findOne({ email });
-            if (!user) {
-                const customError:any = new Error('User not found!');
-                customError.code = HTTP_CODE.NotFound;
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            const customError: any = new Error('User not found!');
+            customError.code = HTTP_CODE.NotFound;
 
-                throw customError
-            }
+            throw customError
+        }
 
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (!passwordMatch) {
-                const customError:any = new Error('Inccorect password!');
-                customError.code = HTTP_CODE.Unauthorized;
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            const customError: any = new Error('Inccorect password!');
+            customError.code = HTTP_CODE.Unauthorized;
 
-                throw customError
-            }
+            throw customError
+        }
 
-            const tokenService = new TokenService();
-            const token = tokenService.generateLoginToken(email);
-            const expiresIn = config.token_expire;
+        const tokenService = new TokenService();
+        const token = tokenService.generateLoginToken(email);
 
-            return {
-                statusCode: HTTP_CODE.OK,
-                data: { message: 'Login successefully!', user, token , expiresIn }
-            };
+        return {
+            statusCode: HTTP_CODE.OK,
+            data: { message: 'Login successefully!', token }
+        };
+
+    }
+
+    async addFavoriteTrail(userId: string, trailId: string) {
+
+        // try {
+        const query = { _id: userId } //find user by ID
+        const newFavoriteTrailId = new mongoose.Types.ObjectId(trailId); //
+        const update = {
+            $addToSet: { trailFavorites: newFavoriteTrailId }
+        };
+        const options = { upsert: true }; //do not accept duplification
+        console.log("ObjectIdTrailId:", newFavoriteTrailId);
+        const response = await UserModel.updateOne(query, update, options)
+        console.log(response)
+        return response
+        // } catch (error) {
+        //     console.error('Error adding favorite trail:', error);
+        //     throw new Error('Failed to add favorite trail');
+        // }
+    }
+
+    async removeFavoriteTrail(userId: string, trailId: string) {
+        // try {
+        const query = { _id: userId }
+        const update = {
+            $pull: { trailFavorites: trailId }
+        };
+
+        const response = await UserModel.updateOne(query, update)
+        console.log(response)
+        return response
+        // } catch (error) {
+        //     console.error('Error removing favorite trail:', error);
+        //     throw new Error('Failed to remove favorite trail');
+        // }
+    }
+
+
+    async readFavoriteTrails(userId: string) {
+
+        const response = await UserModel.findById(userId)
+        return response?.trailFavorites
+
     }
 
     async updateUser(userId: string, updatedFields: any) {
         try {
             const user = await UserModel.findById(userId);
             if (!user) {
-                const customError:any = new Error('User not found!');
+                const customError: any = new Error('User not found!');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
 
-            const { age, gender, location, availability, skillLevel, interests, emergencyContact, 
-                socialMedia, hikingExperience, equipment, hikeBuddy} = updatedFields;
-    
+            const { age, gender, location, availability, skillLevel, interests, emergencyContact,
+                socialMedia, hikingExperience, equipment, hikeBuddy } = updatedFields;
+
             console.log("User before update:", user);
-            
+
             console.log(updatedFields);
-            
+
             if (age) {
                 if (age < 1 || age > 150) {
                     const customError: any = new Error('Age must be between 1 and 150');
@@ -167,17 +213,16 @@ export class UserController {
                 }
                 user.hikeBuddy = hikeBuddy;
             }
-    
+
             console.log("User after update:", user);
-    
+
             await user.save();
-    
+
             return { message: 'User updated successfully!' };
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
     }
-    
-    
+
 }

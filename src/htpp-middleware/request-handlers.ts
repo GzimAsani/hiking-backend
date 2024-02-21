@@ -46,29 +46,29 @@ export class HttpRequestHandlers {
 
     static signup = async (req: Request, res: Response) => {
 
-          let data = '';
-          req.on('data', chunk => {
-              data += chunk;
-          });
-          req.on('end', async () => {
-              try {
-                  const userObj: any = JSON.parse(data);
-  
-                  const userController = new UserController();
-                  const result = await userController.signup(userObj);
-  
-                  res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify(result));
-              } catch (err:any) {
+        let data = '';
+        req.on('data', chunk => {
+            data += chunk;
+        });
+        req.on('end', async () => {
+            try {
+                const userObj: any = JSON.parse(data);
+
+                const userController = new UserController();
+                const result = await userController.signup(userObj);
+
+                res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result));
+            } catch (err: any) {
                 console.log("AFTER THIS ERROR SHOULD APPEAR")
                 console.log(new Error(err).message)
-                
-                  //console.error('Error:', error);
-                  
+
+                //console.error('Error:', error);
+
                 res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: err.message? err.message: "Internal Server Error"}));
-              }
-          });
+                res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
+            }
+        });
     }
 
     static deleteUser = async (req: Request, res: Response) => {
@@ -79,7 +79,7 @@ export class HttpRequestHandlers {
                 res.end(JSON.stringify({ error: 'User ID is required' }));
                 return;
             }
-            
+
             res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ message: `User ${userId} deleted successfully` }));
         } catch (error) {
@@ -93,7 +93,7 @@ export class HttpRequestHandlers {
         try {
             const urlParts = req.url?.split('/');
             const userEmail = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
-            
+
             if (!userEmail) {
                 res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'User email is required' }));
@@ -114,36 +114,71 @@ export class HttpRequestHandlers {
             res.end(JSON.stringify({ error: 'Internal Server Error' }));
         }
     }
-    
+
 
     static login = async (req: Request, res: Response) => {
         // try {
-            let data = '';
-            req.on('data', chunk => {
-                data += chunk;
-            });
-            req.on('end', async () => {
-                try {
-                    const { email, password } = JSON.parse(data);
-                    const userController = new UserController();
-                    const result = await userController.login(email, password);
-                    res.writeHead(result.statusCode, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(result.data));
-                } catch (err:any) {
-                    console.log("AFTER THIS ERROR SHOULD APPEAR")
-                    console.log(new Error(err).message)
-                    
-                      //console.error('Error:', error);
-                      
-                    res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: err.message? err.message: "Internal Server Error"}));
-                  }
-            });
+        let data = '';
+        req.on('data', chunk => {
+            data += chunk;
+        });
+        req.on('end', async () => {
+            try {
+                const { email, password } = JSON.parse(data);
+                const userController = new UserController();
+                const result = await userController.login(email, password);
+                res.writeHead(result.statusCode, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result.data));
+            } catch (err: any) {
+                console.log("AFTER THIS ERROR SHOULD APPEAR")
+                console.log(new Error(err).message)
+
+                //console.error('Error:', error);
+
+                res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
+            }
+        });
         // } catch (error) {
         //     console.error('Error:', error);
         //     res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
         //     res.end(JSON.stringify({ error: 'Internal Server Error' }));
         // }
+    }
+
+
+    static addFavoriteTrail = async (req: Request, res: Response) => {
+        try {
+            const { userId, trailId } = req.params;
+            const userController = new UserController();
+            await userController.addFavoriteTrail(userId, trailId);
+            res.status(HTTP_CODE.OK).json({ message: 'Favorite trail added successfully' });
+        } catch (error) {
+            console.error('Error adding favorite trail:', error);
+            res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed to add favorite trail' });
+        }
+    }
+    static removeFavoriteTrail = async (req: Request, res: Response) => {
+        try {
+            const { userId, trailId } = req.params;
+            const userController = new UserController();
+            await userController.removeFavoriteTrail(userId, trailId);
+            res.status(HTTP_CODE.OK).json({ message: 'Favorite trail removed successfully' });
+        } catch (error) {
+            console.error('Error removing favorite trail:', error);
+            res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed to remove favorite trail' });
+        }
+    }
+
+    static readFavoriteTrails = async (req: Request, res: Response) => {
+        try {
+            const { userId } = req.params;
+            const userController = new UserController()
+            const response = await userController.readFavoriteTrails(userId)
+            res.status(HTTP_CODE.OK).json(response)
+        } catch (error) {
+            res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed' });
+        }
     }
 
     static updateUser = async (req: Request, res: Response) => {
@@ -164,12 +199,12 @@ export class HttpRequestHandlers {
                 const result = await userController.updateUser(userId, updatedFields);
                 res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result));
-            } catch (err:any) {
+            } catch (err: any) {
                 console.log("AFTER THIS ERROR SHOULD APPEAR")
                 console.log(new Error(err).message)
-                
+
                 res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error"}));
+                res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
             }
         });
     }
@@ -186,29 +221,25 @@ export class HttpRequestHandlers {
         }
     }
 
-
-
-
-
     static saveReminder = async (req: Request, res: Response) => {
         let data = '';
-    
+
         req.on('data', chunk => {
             data += chunk;
         });
-    
+
         req.on('end', async () => {
             try {
                 const reminderObj: any = JSON.parse(data);
-    
+
                 const reminderController = new ReminderController;
                 const result = await reminderController.saveReminder(reminderObj);
-    
+
                 res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result));
             } catch (err: any) {
                 console.error("An error occurred while saving reminder:", err);
-    
+
                 res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
             }
@@ -226,22 +257,22 @@ export class HttpRequestHandlers {
             req.on('end', async () => {
                 try {
                     const { id, date, time, location, description } = JSON.parse(data);
-    
+
                     const existingReminder = await Reminder.findById(id);
-    
+
                     if (!existingReminder) {
                         res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ error: 'Reminder not found' }));
                         return;
                     }
-    
+
                     existingReminder.date = date;
                     existingReminder.time = time;
                     existingReminder.location = location;
                     existingReminder.description = description;
-    
+
                     const updatedReminder = await existingReminder.save();
-    
+
                     res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify(updatedReminder));
                 } catch (error) {
@@ -267,11 +298,11 @@ export class HttpRequestHandlers {
             }
             const reminderController = new ReminderController();
             await reminderController.deleteReminder(reminderId);
-             if (!reminderController) {
-                 res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
-                 res.end(JSON.stringify({ error: 'Reminder not found' }));
-                 return;
-             }
+            if (!reminderController) {
+                res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Reminder not found' }));
+                return;
+            }
             res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ message: `Reminder deleted successfully` }));
         } catch (error) {
