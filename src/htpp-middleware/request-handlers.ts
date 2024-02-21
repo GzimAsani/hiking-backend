@@ -235,7 +235,7 @@ export class HttpRequestHandlers {
                 return;
             }
             const reminderController = new ReminderController();
-            await reminderController.deleteUser(reminderId);
+            await reminderController.deleteReminder(reminderId);
             if (!reminderController) {
                 res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Reminder not found' }));
