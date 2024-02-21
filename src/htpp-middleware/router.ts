@@ -13,6 +13,7 @@ router.post('/login', HttpRequestHandlers.login);
 router.post('/users/:userId/favorites/:trailId', HttpRequestHandlers.addFavoriteTrail);
 router.delete('/users/:userId/favorites/:trailId', HttpRequestHandlers.removeFavoriteTrail);
 router.get('/users/:userId/favorites', HttpRequestHandlers.readFavoriteTrails)
+router.put('/users/:userId', HttpRequestHandlers.updateUser);
 router.post('/reminder/addReminder', HttpRequestHandlers.saveReminder);
 router.delete('/reminder/:reminderId', HttpRequestHandlers.deleteReminder);
 router.put('/reminder/updateReminder', HttpRequestHandlers.updateReminder);

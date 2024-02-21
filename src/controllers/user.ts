@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { TokenService } from '../services/tokenService';
 import { HTTP_CODE } from '../enums/http-status-codes';
 import mongoose from 'mongoose';
+import { config } from "../config";
 
 export class UserController {
 
@@ -28,7 +29,7 @@ export class UserController {
     }
 
     async signup(userObj: any) {
-        const { firstName, lastName, email, password } = userObj;
+        const { firstName, lastName, email, password, ...rest } = userObj;
         if (!firstName || !lastName) {
             const customError: any = new Error('First name and last name are required!');
             customError.code = HTTP_CODE.NotFound;
@@ -47,7 +48,8 @@ export class UserController {
             firstName,
             lastName,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            ...rest
         });
         await newUser.save();
         return { message: 'User created successfully!' };
