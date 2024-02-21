@@ -2,6 +2,7 @@ import UserModel from '../models/User';
 import bcrypt from 'bcrypt';
 import { TokenService } from '../services/tokenService';
 import { HTTP_CODE } from '../enums/http-status-codes';
+import { config } from "../config";
 
 export class UserController {
     async getUsers() {
@@ -25,7 +26,7 @@ export class UserController {
     }
 
     async signup(userObj: any) {
-            const { firstName, lastName, email, password } = userObj;
+            const { firstName, lastName, email, password, ...rest } = userObj;
             if (!firstName || !lastName) {
                 const customError:any = new Error('First name and last name are required!');
                 customError.code = HTTP_CODE.NotFound;
@@ -44,7 +45,8 @@ export class UserController {
                 firstName,
                 lastName,
                 email,
-                password: hashedPassword
+                password: hashedPassword,
+                ...rest
             });
             await newUser.save();
             return { message: 'User created successfully!' };
@@ -88,10 +90,94 @@ export class UserController {
 
             const tokenService = new TokenService();
             const token = tokenService.generateLoginToken(email);
+            const expiresIn = config.token_expire;
 
             return {
                 statusCode: HTTP_CODE.OK,
-                data: { message: 'Login successefully!', token }
+                data: { message: 'Login successefully!', user, token , expiresIn }
             };
     }
+
+    async updateUser(userId: string, updatedFields: any) {
+        try {
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                const customError:any = new Error('User not found!');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const { age, gender, location, availability, skillLevel, interests, emergencyContact, 
+                socialMedia, hikingExperience, equipment, hikeBuddy} = updatedFields;
+    
+            console.log("User before update:", user);
+            
+            console.log(updatedFields);
+            
+            if (age) {
+                if (age < 1 || age > 150) {
+                    const customError: any = new Error('Age must be between 1 and 150');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.age = age;
+            }
+            if (gender) {
+                if (!['male', 'female'].includes(gender)) {
+                    const customError: any = new Error('Gender must be either "male" or "female"');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.gender = gender;
+            }
+            if (location) {
+                user.location = location;
+            }
+            if (availability) {
+                user.availability = availability;
+            }
+            if (skillLevel) {
+                if (!['beginner', 'intermediate', 'advanced'].includes(skillLevel)) {
+                    const customError: any = new Error('Skill level must be one of: "beginner", "intermediate", "advanced"');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.skillLevel = skillLevel;
+            }
+            if (interests) {
+                user.interests = interests;
+            }
+            if (emergencyContact) {
+                user.emergencyContact = emergencyContact;
+            }
+            if (socialMedia) {
+                user.socialMedia = socialMedia;
+            }
+            if (hikingExperience) {
+                user.hikingExperience = hikingExperience;
+            }
+            if (equipment) {
+                user.equipment = equipment;
+            }
+            if (hikeBuddy !== undefined) {
+                if (typeof hikeBuddy !== 'boolean') {
+                    const customError: any = new Error('Invalid hikeBuddy value');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.hikeBuddy = hikeBuddy;
+            }
+    
+            console.log("User after update:", user);
+    
+            await user.save();
+    
+            return { message: 'User updated successfully!' };
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+    
+    
 }

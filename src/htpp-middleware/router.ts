@@ -10,6 +10,7 @@ router.post('/users', HttpRequestHandlers.signup);
 router.delete('/users/:userId', HttpRequestHandlers.deleteUser);
 router.get('/users/email/:email', HttpRequestHandlers.getUserByEmail);
 router.post('/login', HttpRequestHandlers.login);
+router.put('/users/:userId', HttpRequestHandlers.updateUser);
 router.post('/reminder/addReminder', HttpRequestHandlers.saveReminder);
 router.delete('/reminder/:reminderId', HttpRequestHandlers.deleteReminder);
 router.put('/reminder/updateReminder', HttpRequestHandlers.updateReminder);
