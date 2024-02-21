@@ -241,7 +241,7 @@ export class HttpRequestHandlers {
                  return;
              }
             res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: `Reminder ${reminderId} deleted successfully` }));
+            res.end(JSON.stringify({ message: `Reminder deleted successfully` }));
         } catch (error) {
             console.error('Error:', error);
             res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
