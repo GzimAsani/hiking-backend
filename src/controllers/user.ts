@@ -144,4 +144,85 @@ export class UserController {
 
     }
 
+    async updateUser(userId: string, updatedFields: any) {
+        try {
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                const customError: any = new Error('User not found!');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const { age, gender, location, availability, skillLevel, interests, emergencyContact,
+                socialMedia, hikingExperience, equipment, hikeBuddy } = updatedFields;
+
+            console.log("User before update:", user);
+
+            console.log(updatedFields);
+
+            if (age) {
+                if (age < 1 || age > 150) {
+                    const customError: any = new Error('Age must be between 1 and 150');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.age = age;
+            }
+            if (gender) {
+                if (!['male', 'female'].includes(gender)) {
+                    const customError: any = new Error('Gender must be either "male" or "female"');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.gender = gender;
+            }
+            if (location) {
+                user.location = location;
+            }
+            if (availability) {
+                user.availability = availability;
+            }
+            if (skillLevel) {
+                if (!['beginner', 'intermediate', 'advanced'].includes(skillLevel)) {
+                    const customError: any = new Error('Skill level must be one of: "beginner", "intermediate", "advanced"');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.skillLevel = skillLevel;
+            }
+            if (interests) {
+                user.interests = interests;
+            }
+            if (emergencyContact) {
+                user.emergencyContact = emergencyContact;
+            }
+            if (socialMedia) {
+                user.socialMedia = socialMedia;
+            }
+            if (hikingExperience) {
+                user.hikingExperience = hikingExperience;
+            }
+            if (equipment) {
+                user.equipment = equipment;
+            }
+            if (hikeBuddy !== undefined) {
+                if (typeof hikeBuddy !== 'boolean') {
+                    const customError: any = new Error('Invalid hikeBuddy value');
+                    customError.code = HTTP_CODE.BadRequest;
+                    throw customError;
+                }
+                user.hikeBuddy = hikeBuddy;
+            }
+
+            console.log("User after update:", user);
+
+            await user.save();
+
+            return { message: 'User updated successfully!' };
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
 }
