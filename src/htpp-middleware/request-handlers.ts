@@ -195,6 +195,7 @@ export class HttpRequestHandlers {
         .status(HTTP_CODE.InternalServerError)
         .json({ error: 'Failed to add favorite trail' });
     }
+
   };
   static removeFavoriteTrail = async (req: Request, res: Response) => {
     try {
@@ -209,19 +210,23 @@ export class HttpRequestHandlers {
       res
         .status(HTTP_CODE.InternalServerError)
         .json({ error: 'Failed to remove favorite trail' });
+
+
+    static readFavoriteTrails = async (req: Request, res: Response) => {
+        try {
+            const { userId } = req.params;
+            const userController = new UserController();
+            const response = await userController.readFavoriteTrails(userId);
+            console.log('Response sent:', response);
+            res.status(HTTP_CODE.OK).json(response);
+        } catch (error) {
+            res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed' });
+        }
+
     }
   };
 
-  static readFavoriteTrails = async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const userController = new UserController();
-      const response = await userController.readFavoriteTrails(userId);
-      res.status(HTTP_CODE.OK).json(response);
-    } catch (error) {
-      res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed' });
-    }
-  };
+  
 
   static updateUser = async (req: Request, res: Response) => {
     let data = '';
