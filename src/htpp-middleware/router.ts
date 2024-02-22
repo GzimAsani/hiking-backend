@@ -30,5 +30,11 @@ router.delete(
   HttpRequestHandlers.removePastTrail
 );
 router.get('/users/:userId/user-trails', HttpRequestHandlers.getPastTrails);
+router.get('/trails', HttpRequestHandlers.getAllTrails);
+router.get('/trails/:trailId', HttpRequestHandlers.getTrail);
+router.post('/trails', HttpRequestHandlers.createTrail);
+router.put('/trails/:trailId', HttpRequestHandlers.updateTrail);
+router.delete('/trails/:trailId', HttpRequestHandlers.deleteTrail);
+
 
 export default router;
