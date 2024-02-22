@@ -16,30 +16,28 @@ export class ReminderController {
     }
 
 
-
-
     async saveReminder(userObj: any) {
-        
-            const { date, time, location, description } = userObj;
-            const newReminder = new ReminderModel({
-                date,
-                time,
-                location,
-                description
-            });
-            await newReminder.save();
-            if (!date || !time) {
-                const customError:any = new Error('Date and Time are required to be fullfilled');
-                customError.code = HTTP_CODE.NotFound;
-                throw customError
-            }
-            const existingReminder = await ReminderModel.findOne({ Reminder });
-            if (existingReminder) {
-                const customError:any =  new Error('This reminder already exists for this profile');
-                customError.code = HTTP_CODE.NotFound
 
-                throw customError
-            }    
+        const { date, time, location, description } = userObj;
+        const newReminder = new ReminderModel({
+            date,
+            time,
+            location,
+            description
+        });
+        await newReminder.save();
+        if (!date || !time) {
+            const customError: any = new Error('Date and Time are required to be fullfilled');
+            customError.code = HTTP_CODE.NotFound;
+            throw customError
+        }
+        const existingReminder = await ReminderModel.findOne({ Reminder });
+        if (existingReminder) {
+            const customError: any = new Error('This reminder already exists for this profile');
+            customError.code = HTTP_CODE.NotFound
+
+            throw customError
+        }
     }
 
     async deleteReminder(reminderId: string) {
@@ -54,32 +52,32 @@ export class ReminderController {
     async updateReminder(userObj: any) {
         try {
             const { id, date, time, location, description } = userObj;
-    
+
             if (!date || !time) {
                 const customError: any = new Error('Date and Time are required to be fulfilled');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const existingReminder = await ReminderModel.findById(id);
-    
+
             if (!existingReminder) {
                 const customError: any = new Error('Reminder not found');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             existingReminder.date = date;
             existingReminder.time = time;
             existingReminder.location = location;
             existingReminder.description = description;
-    
+
             await existingReminder.save();
-    
+
             return existingReminder;
         } catch (error) {
             console.error('Error updating reminder:', error);
-            throw error; 
+            throw error;
         }
     }
 }

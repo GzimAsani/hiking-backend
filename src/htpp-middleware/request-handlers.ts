@@ -173,9 +173,10 @@ export class HttpRequestHandlers {
     static readFavoriteTrails = async (req: Request, res: Response) => {
         try {
             const { userId } = req.params;
-            const userController = new UserController()
-            const response = await userController.readFavoriteTrails(userId)
-            res.status(HTTP_CODE.OK).json(response)
+            const userController = new UserController();
+            const response = await userController.readFavoriteTrails(userId);
+            console.log('Response sent:', response);
+            res.status(HTTP_CODE.OK).json(response);
         } catch (error) {
             res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed' });
         }

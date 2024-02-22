@@ -74,8 +74,12 @@ const User = new mongoose.Schema({
         default: Date.now
     },
     trailFavorites: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Trail'
+        // type: mongoose.Schema.Types.ObjectId,
+        type: String
+        // ref: 'Trail' 
+        //commented just for testing 
+
+
     }],
     reviews: [{
         trail: {

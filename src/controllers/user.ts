@@ -77,7 +77,7 @@ export class UserController {
     async login(email: string, password: string) {
         const user = await UserModel.findOne({ email });
         if (!user) {
-            const customError:any = new Error('User not found!');
+            const customError: any = new Error('User not found!');
             customError.code = HTTP_CODE.NotFound;
 
             throw customError
@@ -85,7 +85,7 @@ export class UserController {
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            const customError:any = new Error('Inccorect password!');
+            const customError: any = new Error('Inccorect password!');
             customError.code = HTTP_CODE.Unauthorized;
 
             throw customError
@@ -97,7 +97,7 @@ export class UserController {
 
         return {
             statusCode: HTTP_CODE.OK,
-            data: { message: 'Login successefully!', user, token , expiresIn }
+            data: { message: 'Login successefully!', user, token, expiresIn }
         };
     }
 
@@ -122,13 +122,14 @@ export class UserController {
 
     async removeFavoriteTrail(userId: string, trailId: string) {
         // try {
+        console.log({ trailId })
         const query = { _id: userId }
+        const trailFavoriteToBeDeleted = new mongoose.Types.ObjectId(trailId);
         const update = {
-            $pull: { trailFavorites: trailId }
+            $pull: { trailFavorites: trailFavoriteToBeDeleted }
         };
 
         const response = await UserModel.updateOne(query, update)
-        console.log(response)
         return response
         // } catch (error) {
         //     console.error('Error removing favorite trail:', error);
