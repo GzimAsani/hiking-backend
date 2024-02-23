@@ -537,4 +537,84 @@ export class HttpRequestHandlers {
           }
       });
   }
+
+  static rateAndReviewTrail = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+        data += chunk;
+    });
+    req.on('end', async () => {
+        try {
+          const trailId = req.params.trailId;
+          const userId = req.params.userId;
+            const { rating, comment } = JSON.parse(data);
+            if (!trailId || !userId || !rating || !comment) {
+                res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Trail ID, User ID, Rating, and Comment are required' }));
+                return;
+            }
+            const trailController = new TrailController();
+            const result = await trailController.rateAndReviewTrail(trailId, userId, rating, comment);
+            res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    });
+  };
+
+  static updateRateAndReviewTrail = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+        data += chunk;
+    });
+    req.on('end', async () => {
+        try {
+            const trailId = req.params.trailId;
+            const userId = req.params.userId;
+            const { rating, comment } = JSON.parse(data);
+            if (!trailId || !userId || !rating || !comment) {
+                res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Trail ID, User ID, Rating, and Comment are required' }));
+                return;
+            }
+            const trailController = new TrailController();
+            const result = await trailController.updateRateAndReviewTrail(trailId, userId, rating, comment);
+            res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    });
+  };
+
+  static deleteReviewTrail = async (req: Request, res: Response) => {
+    try {
+        const { userId, trailId } = req.params;
+        const trailController = new TrailController();
+        await trailController.deleteReview(trailId, userId);
+        res.status(HTTP_CODE.OK).json({ message: 'Review deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed to delete review' });
+    }
+  };
+
+  static getAllReviews = async (req: Request, res: Response) => {
+    try {
+        const trailId = req.params.trailId;
+        const trailController = new TrailController();
+        const reviews = await trailController.getAllReivews(trailId);
+        res.status(HTTP_CODE.OK).json(reviews);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+    }
+  };
+
+
 }
