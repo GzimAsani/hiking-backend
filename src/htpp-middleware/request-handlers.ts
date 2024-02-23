@@ -616,5 +616,41 @@ export class HttpRequestHandlers {
     }
   };
 
+  static getHikeBuddies = async (req: Request, res: Response) => {
+    try {
+      const userController = new UserController();
+      const users = await userController.getAllHikeBuddies();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(users));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
+  static searchHikeBuddies = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+        data += chunk;
+    });
+    req.on('end', async () => {
+        try {
+            const { fullName, location, skillLevel, gender } = JSON.parse(data);
+
+            const userController = new UserController();
+            const hikeBuddies = await userController.searchForHikeBuddies({ fullName, location, skillLevel, gender });
+
+            res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(hikeBuddies));
+        } catch (error) {
+            console.error('Error:', error);
+            res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+    });
+  };
 
 }

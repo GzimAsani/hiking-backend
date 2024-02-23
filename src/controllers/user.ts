@@ -226,4 +226,58 @@ export class UserController {
         }
     }
 
+    async getAllHikeBuddies() {
+        try {
+            const hikeBuddies = await UserModel.find({ hikeBuddy: true });
+            return hikeBuddies;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
+    async searchForHikeBuddies(filters: any) {
+        try {
+            const {
+                fullName,
+                location,
+                gender,
+                skillLevel
+            } = filters;
+    
+            const query: any = {};
+            
+            if (fullName) {
+                const [firstName, lastName] = fullName.split(' ');
+    
+                if (firstName) {
+                    query.firstName = { $regex: new RegExp(firstName, "i") };
+                }
+    
+                if (lastName) {
+                    query.lastName = { $regex: new RegExp(lastName, "i") };
+                }
+            }
+    
+            if (location) {
+                query.location = { $regex: new RegExp(location, "i") };
+            }
+    
+            if (gender) {
+                query.gender = gender;
+            }
+    
+            if (skillLevel) {
+                query.skillLevel = skillLevel;
+            }
+    
+            const hikeBuddies = await UserModel.find({ ...query, hikeBuddy: true });
+            return hikeBuddies;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+    
+       
 }

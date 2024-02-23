@@ -39,4 +39,7 @@ router.post('/trails/:trailId/reviews/:userId', HttpRequestHandlers.rateAndRevie
 router.put('/trails/:trailId/reviews/:userId', HttpRequestHandlers.updateRateAndReviewTrail);
 router.delete('/trails/:trailId/reviews/:userId', HttpRequestHandlers.deleteReviewTrail);
 router.get('/trails/:trailId/reviews', HttpRequestHandlers.getAllReviews);
+router.get('/hikeBuddies', HttpRequestHandlers.getHikeBuddies);
+router.post('/hikeBuddies/search', HttpRequestHandlers.searchHikeBuddies);
+
 export default router;
