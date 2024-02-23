@@ -248,15 +248,10 @@ export class UserController {
             const query: any = {};
             
             if (fullName) {
-                const [firstName, lastName] = fullName.split(' ');
-    
-                if (firstName) {
-                    query.firstName = { $regex: new RegExp(firstName, "i") };
-                }
-    
-                if (lastName) {
-                    query.lastName = { $regex: new RegExp(lastName, "i") };
-                }
+                query.$or = [
+                    { firstName: { $regex: new RegExp(fullName, "i") } },
+                    { lastName: { $regex: new RegExp(fullName, "i") } }
+                ];
             }
     
             if (location) {
