@@ -79,23 +79,6 @@ const User = new mongoose.Schema({
       ref: 'Trail',
     },
   ],
-  reviews: [
-    {
-      trail: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Trail',
-      },
-      rating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
-      },
-      comment: {
-        type: String,
-      },
-    },
-  ],
   hikeBuddy: {
     type: Boolean,
     default: false,

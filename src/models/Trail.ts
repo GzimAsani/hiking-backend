@@ -11,11 +11,21 @@ const Trail = new mongoose.Schema({
     },
     difficulty: { 
         type: String, 
+        enum: ['easy', 'moderate', 'hard'],
         required: true 
     },
     length: { 
         type: String, 
         required: true 
+    },
+    elevationGain: { 
+        type: Number 
+    },
+    duration: { 
+        type: Number 
+    },
+    routeType: {
+        type: String
     },
     status: {
         type: Boolean,
@@ -31,7 +41,10 @@ const Trail = new mongoose.Schema({
     keyFeatures: {
         type: [String]
     },
-    ratings: [{
+    tags: {
+        type: [String]
+    },
+    reviews:[{
         user: { 
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'User' 
@@ -41,6 +54,10 @@ const Trail = new mongoose.Schema({
             required: true, 
             min: 1, 
             max: 5 
+        },
+        comment: { 
+            type: String, 
+            required: true, 
         }
     }]
 });
