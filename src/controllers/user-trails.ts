@@ -10,6 +10,7 @@ export class PastTrailsController {
 
       const options = { upsert: true };
       const response = await UserModel.updateOne(query, update, options);
+
       return response;
     } catch (error) {
       console.error('Error adding past trail:', error);
@@ -21,7 +22,7 @@ export class PastTrailsController {
     try {
       const query = { _id: userId };
       const update = {
-        $pull: { pastTrails: { id: trailId } },
+        $pull: { pastTrails: { _id: trailId } },
       };
       const response = await UserModel.updateOne(query, update);
       return response;
@@ -34,5 +35,21 @@ export class PastTrailsController {
   async getPastTrails(userId: string) {
     const response = await UserModel.findById(userId);
     return response?.pastTrails;
+  }
+
+  async getSingleTrail(userId: string, trailId: string) {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const trail = user.pastTrails.find(
+      (trail) => String(trail._id) === trailId
+    );
+    if (!trail) {
+      throw new Error('Trail not found');
+    }
+
+    return trail;
   }
 }
