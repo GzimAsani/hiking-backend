@@ -35,6 +35,7 @@ const User = new mongoose.Schema({
   },
   profileImg: {
     type: String,
+    default: null,
   },
   age: {
     type: Number,
@@ -56,17 +57,13 @@ const User = new mongoose.Schema({
     enum: ['beginner', 'intermediate', 'advanced'],
   },
   interests: [String],
-  emergencyContact: {
-    name: String,
-    phoneNumber: String,
+  phoneNumber: {
+    type: String,
   },
   socialMedia: {
     facebook: String,
     twitter: String,
     instagram: String,
-  },
-  hikingExperience: {
-    type: String,
   },
   equipment: [String],
   created_at: {

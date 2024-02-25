@@ -154,14 +154,13 @@ export class UserController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-
-            const { age, gender, location, availability, skillLevel, interests, emergencyContact,
-                socialMedia, hikingExperience, equipment, hikeBuddy } = updatedFields;
-
+    
+            const { age, gender, location, availability, skillLevel, interests, phoneNumber, 
+                socialMedia, equipment, hikeBuddy } = updatedFields;
+    
             console.log("User before update:", user);
-
             console.log(updatedFields);
-
+    
             if (age) {
                 if (age < 1 || age > 150) {
                     const customError: any = new Error('Age must be between 1 and 150');
@@ -195,14 +194,21 @@ export class UserController {
             if (interests) {
                 user.interests = interests;
             }
-            if (emergencyContact) {
-                user.emergencyContact = emergencyContact;
+            if (phoneNumber) {
+                user.phoneNumber = phoneNumber;
             }
-            if (socialMedia) {
-                user.socialMedia = socialMedia;
-            }
-            if (hikingExperience) {
-                user.hikingExperience = hikingExperience;
+            if (user.socialMedia) {
+                if (socialMedia) {
+                    if (socialMedia.facebook) {
+                        user.socialMedia.facebook = socialMedia.facebook;
+                    }
+                    if (socialMedia.twitter) {
+                        user.socialMedia.twitter = socialMedia.twitter;
+                    }
+                    if (socialMedia.instagram) {
+                        user.socialMedia.instagram = socialMedia.instagram;
+                    }
+                }
             }
             if (equipment) {
                 user.equipment = equipment;
@@ -215,11 +221,11 @@ export class UserController {
                 }
                 user.hikeBuddy = hikeBuddy;
             }
-
+    
             console.log("User after update:", user);
-
+    
             await user.save();
-
+    
             return { message: 'User updated successfully!' };
         } catch (error) {
             console.error('Error:', error);
@@ -275,5 +281,27 @@ export class UserController {
         }
     }
     
+    static async uploadProfileImg(userId:string, profileImage:any) {
+        try {
+          if (!profileImage) {
+            throw new Error('No profile image provided');
+          }
+      
+          const user = await UserModel.findByIdAndUpdate(
+            userId,
+            { profileImg: profileImage.filename },
+            { new: true }
+          );
+      
+          if (!user) {
+            throw new Error('User not found');
+          }
+      
+          return { message: 'Profile image uploaded successfully', user };
+        } catch (error) {
+          console.error('Error uploading profile image:', error);
+          throw new Error('Internal server error');
+        }
+    }
        
 }
