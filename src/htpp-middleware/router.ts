@@ -1,7 +1,22 @@
 import express from 'express';
 import { HttpRequestHandlers } from '../htpp-middleware/request-handlers';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: 'src/uploads/profileImages',
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+})
+
+const upload = multer({
+  storage: storage
+})
 
 // Define routes
 router.get('/users', HttpRequestHandlers.data);
@@ -47,6 +62,8 @@ router.delete('/trails/:trailId/reviews/:userId', HttpRequestHandlers.deleteRevi
 router.get('/trails/:trailId/reviews', HttpRequestHandlers.getAllReviews);
 router.get('/hikeBuddies', HttpRequestHandlers.getHikeBuddies);
 router.post('/hikeBuddies/search', HttpRequestHandlers.searchHikeBuddies);
+router.post('/upload/:userId', upload.single('profileImage'), HttpRequestHandlers.uploadProfileImg)
+router.use('/profileImages', express.static(path.join(__dirname, '../uploads/profileImages')));
 
 
 export default router;

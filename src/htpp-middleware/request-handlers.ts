@@ -261,6 +261,30 @@ export class HttpRequestHandlers {
     });
   };
 
+  static uploadProfileImg = async (req: Request, res: Response) => {
+    try {
+      const userId = req.params.userId;
+      const profileImage = req.file;
+
+      if (!userId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'User ID is required' }));
+        return;
+      }
+      const result = await UserController.uploadProfileImg(userId, profileImage);
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (error) {
+      console.error('Error uploading the image:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
   static getAllReminders = async (req: Request, res: Response) => {
     try {
       const allReminders = await ReminderModel.find();
