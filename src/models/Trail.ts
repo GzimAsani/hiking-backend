@@ -44,7 +44,7 @@ const Trail = new mongoose.Schema({
     tags: {
         type: [String]
     },
-    ratings: [{
+    reviews:[{
         user: { 
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'User' 
@@ -54,12 +54,6 @@ const Trail = new mongoose.Schema({
             required: true, 
             min: 1, 
             max: 5 
-        }
-    }],
-    reviews:[{
-        user: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'User' 
         },
         comment: { 
             type: String, 
