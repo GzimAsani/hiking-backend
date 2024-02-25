@@ -30,6 +30,12 @@ router.delete(
   HttpRequestHandlers.removePastTrail
 );
 router.get('/users/:userId/user-trails', HttpRequestHandlers.getPastTrails);
+
+router.get(
+  '/users/:userId/user-trails/:trailId',
+  HttpRequestHandlers.getSinglePastTrail
+);
+
 router.get('/trails', HttpRequestHandlers.getAllTrails);
 router.get('/trails/:trailId', HttpRequestHandlers.getTrail);
 router.post('/trails', HttpRequestHandlers.createTrail);
@@ -41,5 +47,6 @@ router.delete('/trails/:trailId/reviews/:userId', HttpRequestHandlers.deleteRevi
 router.get('/trails/:trailId/reviews', HttpRequestHandlers.getAllReviews);
 router.get('/hikeBuddies', HttpRequestHandlers.getHikeBuddies);
 router.post('/hikeBuddies/search', HttpRequestHandlers.searchHikeBuddies);
+
 
 export default router;

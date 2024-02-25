@@ -100,13 +100,8 @@ const User = new mongoose.Schema({
         lat: String,
         lng: String,
       },
-      id: Number,
     },
-
   ],
-
-
-
 });
 
 const UserModel = mongoose.model('User', User);

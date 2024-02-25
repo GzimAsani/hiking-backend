@@ -386,20 +386,30 @@ export class HttpRequestHandlers {
   };
 
   static addPastTrail = async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const pastTrailData = req.body;
-      const trailController = new PastTrailsController();
-      await trailController.addPastTrail(userId, pastTrailData);
-      res
-        .status(HTTP_CODE.OK)
-        .json({ message: 'Past trail added successfully' });
-    } catch (error) {
-      console.error('Error adding past trail:', error);
-      res
-        .status(HTTP_CODE.InternalServerError)
-        .json({ error: 'Failed to add past trail' });
-    }
+    let data = '';
+
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    req.on('end', async () => {
+      try {
+        const { userId } = req.params;
+        const pastTrailData = JSON.parse(data);
+        console.log(pastTrailData);
+        const trailController = new PastTrailsController();
+        await trailController.addPastTrail(userId, pastTrailData);
+
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Past trail added successfully' }));
+      } catch (error) {
+        console.error('Error adding past trail:', error);
+        res.writeHead(HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Failed to add past trail' }));
+      }
+    });
   };
 
   static removePastTrail = async (req: Request, res: Response) => {
@@ -407,14 +417,15 @@ export class HttpRequestHandlers {
       const { userId, trailId } = req.params;
       const trailController = new PastTrailsController();
       await trailController.removePastTrail(userId, trailId);
-      res
-        .status(HTTP_CODE.OK)
-        .json({ message: 'Past trail removed successfully' });
+
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Past trail removed successfully' }));
     } catch (error) {
       console.error('Error removing past trail:', error);
-      res
-        .status(HTTP_CODE.InternalServerError)
-        .json({ error: 'Failed to remove past trail' });
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Failed to remove past trail' }));
     }
   };
 
@@ -424,11 +435,34 @@ export class HttpRequestHandlers {
       const userController = new PastTrailsController();
       const trails = await userController.getPastTrails(userId);
       res.status(HTTP_CODE.OK).json({ trails: trails });
+     
     } catch (error) {
       console.error('Error reading past trails:', error);
       res
         .status(HTTP_CODE.InternalServerError)
         .json({ error: 'Failed to read past trails' });
+    }
+  };
+
+
+  static getSinglePastTrail = async (req: Request, res: Response) => {
+    try {
+      const { userId, trailId } = req.params;
+      const trailController = new PastTrailsController();
+      const trail = await trailController.getSingleTrail(userId, trailId);
+
+      if (!trail) {
+        res
+          .status(HTTP_CODE.NotFound)
+          .json({ message: `Trail ${trailId} not found` });
+      } else {
+        res.status(HTTP_CODE.OK).json(trail);
+      }
+    } catch (error) {
+      console.error('Error retrieving single past trail:', error);
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Failed to retrieve past trail' });
     }
   };
 
@@ -652,5 +686,6 @@ export class HttpRequestHandlers {
         }
     });
   };
+
 
 }
