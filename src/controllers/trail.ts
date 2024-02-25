@@ -23,6 +23,21 @@ export class TrailController {
         }
     }
 
+    async getTrailByName(trailName: string) {
+        try {
+            console.log(' Trail name: ',trailName);
+            
+            const formattedTrailName = trailName.replace(/-/g, ' ');
+            console.log(' Formated Trail name: ',formattedTrailName);
+            
+            const trail = await TrailModel.findOne({name: formattedTrailName})
+            return trail;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
     async createTrail(trailObj:any) {
         const { name, location, difficulty, length, photos, ...rest } = trailObj;
         if(!name || !location || !difficulty || !length || !photos) {

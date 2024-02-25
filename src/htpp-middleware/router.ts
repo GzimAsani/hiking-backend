@@ -64,6 +64,6 @@ router.get('/hikeBuddies', HttpRequestHandlers.getHikeBuddies);
 router.post('/hikeBuddies/search', HttpRequestHandlers.searchHikeBuddies);
 router.post('/upload/:userId', upload.single('profileImage'), HttpRequestHandlers.uploadProfileImg)
 router.use('/profileImages', express.static(path.join(__dirname, '../uploads/profileImages')));
-
+router.get('/trails/trail/:trailName', HttpRequestHandlers.getTrailByName);
 
 export default router;

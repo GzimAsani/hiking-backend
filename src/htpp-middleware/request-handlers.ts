@@ -527,6 +527,32 @@ export class HttpRequestHandlers {
     }
   }
 
+  static getTrailByName = async (req: Request, res: Response) => {
+    try {
+      const urlParts = req.url?.split('/');
+      const trailName = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
+      
+      if (!trailName) {
+        res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Trail name is required' }));
+        return;
+      }
+      const trailController = new TrailController();
+      const trail = await trailController.getTrailByName(trailName);
+      if (!trail) {
+        res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: `Trail ${trailName} not found` }));
+      } else {
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(trail));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  }
+
   static deleteTrail = async (req: Request, res: Response) => {
     try {
       const trailId = req.url?.split('/')[2];
