@@ -432,109 +432,109 @@ export class HttpRequestHandlers {
     }
   };
 
-  static getAllTrails = async(req: Request, res: Response) => {
+  static getAllTrails = async (req: Request, res: Response) => {
     try {
-        const trailController = new TrailController();
-        const trails = await trailController.getAllTrails();
-        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(trails));
+      const trailController = new TrailController();
+      const trails = await trailController.getAllTrails();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(trails));
     } catch (error) {
-        console.error('Error:', error);
-        res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal Server Error' }));
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
-}
+  }
 
   static getTrail = async (req: Request, res: Response) => {
-      try {
-          const trailId = req.url?.split('/')[2];
-          if (!trailId) {
-              res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'User ID is required' }));
-              return;
-          }
-          const trailController = new TrailController();
-          const trail = await trailController.getTrailById(trailId);
-          if (!trail) {
-              res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ message: `Trail ${trailId} not found` }));
-          } else {
-              res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(trail));
-          }
-      } catch (error) {
-          console.error('Error:', error);
-          res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    try {
+      const trailId = req.url?.split('/')[2];
+      if (!trailId) {
+        res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'User ID is required' }));
+        return;
       }
+      const trailController = new TrailController();
+      const trail = await trailController.getTrailById(trailId);
+      if (!trail) {
+        res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: `Trail ${trailId} not found` }));
+      } else {
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(trail));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
   }
 
   static deleteTrail = async (req: Request, res: Response) => {
-      try {
-          const trailId = req.url?.split('/')[2];
-          if (!trailId) {
-              res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Trail ID is required' }));
-              return;
-          }
-          const trailController = new TrailController();
-          await trailController.deleteTrail(trailId);
-
-          res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ message: `Trail ${trailId} deleted successfully` }));
-      } catch (error) {
-          console.error('Error:', error);
-          res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    try {
+      const trailId = req.url?.split('/')[2];
+      if (!trailId) {
+        res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Trail ID is required' }));
+        return;
       }
+      const trailController = new TrailController();
+      await trailController.deleteTrail(trailId);
+
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: `Trail ${trailId} deleted successfully` }));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
   }
 
   static createTrail = async (req: Request, res: Response) => {
 
-      let data = '';
-      req.on('data', chunk => {
-          data += chunk;
-      });
-      req.on('end', async () => {
-          try {
-              const trailObj: any = JSON.parse(data);
+    let data = '';
+    req.on('data', chunk => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const trailObj: any = JSON.parse(data);
 
-              const trailController = new TrailController();
-              const result = await trailController.createTrail(trailObj);
+        const trailController = new TrailController();
+        const result = await trailController.createTrail(trailObj);
 
-              res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(result));
-          } catch (err: any) {
-              console.log(new Error(err).message)
+        res.writeHead(HTTP_CODE.Created, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message)
 
-              res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
-          }
-      });
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
+      }
+    });
   }
   static updateTrail = async (req: Request, res: Response) => {
-      let data = '';
-      req.on('data', chunk => {
-          data += chunk;
-      });
-      req.on('end', async () => {
-          try {
-              const trailId = req.params.trailId;
-              const updatedFields = JSON.parse(data);
-              if (!trailId) {
-                  res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ error: 'Trail ID is required' }));
-                  return;
-              }
-              const trailController = new TrailController();
-              const result = await trailController.updateTrail(trailId, updatedFields);
-              res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(result));
-          } catch (err: any) {
-              console.log(new Error(err).message)
-              res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
-          }
-      });
+    let data = '';
+    req.on('data', chunk => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const trailId = req.params.trailId;
+        const updatedFields = JSON.parse(data);
+        if (!trailId) {
+          res.writeHead(HTTP_CODE.BadRequest, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Trail ID is required' }));
+          return;
+        }
+        const trailController = new TrailController();
+        const result = await trailController.updateTrail(trailId, updatedFields);
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message)
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message ? err.message : "Internal Server Error" }));
+      }
+    });
   }
 }

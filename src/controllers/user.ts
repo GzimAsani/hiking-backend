@@ -140,7 +140,8 @@ export class UserController {
 
     async readFavoriteTrails(userId: string) {
 
-        const response = await UserModel.findById(userId)
+        const response = await UserModel.findById(userId).populate('trailFavorites')
+
         return response?.trailFavorites
 
     }
