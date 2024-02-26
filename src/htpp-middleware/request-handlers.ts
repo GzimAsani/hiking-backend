@@ -285,11 +285,61 @@ export class HttpRequestHandlers {
     }
   };
 
- /* static getAllReminders = async (req: Request, res: Response) => {
+  static getAllReminders = async (req: Request, res: Response) => {
     try {
-      const allReminders = await ReminderModel.find();
+      const {trailId} = req.params;
+      const reminderController = new ReminderController();
+      const reminders = await reminderController.getAllReminders(trailId);
       res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(allReminders));
+      res.end(JSON.stringify(reminders));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
+  static getAReminder = async (req:Request, res: Response) => {
+    try {
+      const {trailId, reminderId} = req.params;
+      const reminderController = new ReminderController();
+      const reminder = await reminderController.getAReminder(trailId, reminderId);
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(reminder));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  }
+
+  static deleteReminder = async (req: Request, res: Response) => {
+    try {
+      const {trailId, reminderId} = req.params;
+      if (!trailId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Trail ID is required' }));
+        return;
+      }
+      if (!reminderId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Reminder ID is required' }));
+        return;
+      }
+      const reminderController = new ReminderController();
+      reminderController.deleteReminder(trailId, reminderId);
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({ message: `Reminder ${reminderId} deleted successfully` })
+      );
     } catch (error) {
       console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
@@ -301,25 +351,21 @@ export class HttpRequestHandlers {
 
   static saveReminder = async (req: Request, res: Response) => {
     let data = '';
-
     req.on('data', (chunk) => {
       data += chunk;
     });
-
     req.on('end', async () => {
       try {
-        const reminderObj: any = JSON.parse(data);
-
+        const { trailId } = req.params;
+        const reminderData = JSON.parse(data);
         const reminderController = new ReminderController();
-        const result = await reminderController.saveReminder(reminderObj);
-
+        const result = await reminderController.saveReminder(trailId, reminderData);
         res.writeHead(HTTP_CODE.Created, {
           'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result));
-      } catch (err: any) {
-        console.error('An error occurred while saving reminder:', err);
 
+      } catch (err:any) {
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
           'Content-Type': 'application/json',
         });
@@ -329,85 +375,38 @@ export class HttpRequestHandlers {
           })
         );
       }
-    });
-  };
+    })
 
+  }
   static updateReminder = async (req: Request, res: Response) => {
-    const Reminder = require('../models/Reminder');
-    try {
-      let data = '';
-      req.on('data', (chunk) => {
-        data += chunk;
-      });
-      req.on('end', async () => {
-        try {
-          const { id, date, time, location, description } = JSON.parse(data);
-
-          const existingReminder = await Reminder.findById(id);
-
-          if (!existingReminder) {
-            res.writeHead(HTTP_CODE.NotFound, {
-              'Content-Type': 'application/json',
-            });
-            res.end(JSON.stringify({ error: 'Reminder not found' }));
-            return;
-          }
-
-          existingReminder.date = date;
-          existingReminder.time = time;
-          //existingReminder.location = location;
-          existingReminder.description = description;
-
-          const updatedReminder = await existingReminder.save();
-
-          res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(updatedReminder));
-        } catch (error) {
-          console.error('Error:', error);
-          res.writeHead(HTTP_CODE.InternalServerError, {
-            'Content-Type': 'application/json',
-          });
-          res.end(JSON.stringify({ error: 'Internal Server Error' }));
-        }
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        'Content-Type': 'application/json',
-      });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
-    }
-  };
-
-  static deleteReminder = async (req: Request, res: Response) => {
-    try {
-      const reminderId = req.url?.split('/')[2];
-      if (!reminderId) {
-        res.writeHead(HTTP_CODE.BadRequest, {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { trailId, reminderId } = req.params;
+        const reminderData = JSON.parse(data);
+        const reminderController = new ReminderController();
+        const result = await reminderController.updateReminder(trailId, reminderId, reminderData);
+        res.writeHead(HTTP_CODE.Created, {
           'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: 'Reminder ID is required' }));
-        return;
-      }
-      const reminderController = new ReminderController();
-      await reminderController.deleteReminder(reminderId);
-      if (!reminderController) {
-        res.writeHead(HTTP_CODE.NotFound, {
+        res.end(JSON.stringify(result));
+
+      } catch (err:any) {
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
           'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: 'Reminder not found' }));
-        return;
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
       }
-      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: `Reminder deleted successfully` }));
-    } catch (error) {
-      console.error('Error:', error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        'Content-Type': 'application/json',
-      });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
-    }
-  }; */
+    })
+
+  }
 
   static addPastTrail = async (req: Request, res: Response) => {
     let data = '';

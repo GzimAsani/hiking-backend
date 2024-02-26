@@ -60,10 +60,10 @@ const Trail = new mongoose.Schema({
             required: true, 
         }
     }],
-    reminders:{
+    reminders:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Reminder'
-    }
+    }]
 });
 
 const TrailModel = mongoose.model("Trail", Trail);

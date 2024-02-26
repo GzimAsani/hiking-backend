@@ -1,83 +1,168 @@
 import { HTTP_CODE } from "../enums/http-status-codes";
 import ReminderModel from "../models/Reminder";
+import TrailModel from "../models/Trail";
+import UserModel from "../models/User";
 
-const Reminder = require('../models/Reminder');
 
 export class ReminderController {
 
-    async getReminders() {
+    async getAllReminders(trailId: string) {
         try {
-            const reminders = await ReminderModel.find();
-            return reminders;
+            const trail = await TrailModel.findById(trailId).populate('reminders');
+            if (!trail) { 
+                const customError: any = new Error('No trail found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+            return trail.reminders;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+    
+
+    async saveReminder(trailId: string, reminderData: any) {
+        try {
+            const { date, time, description, userId } = reminderData;
+
+            const trail = await TrailModel.findById(trailId);
+            if(!trail) { 
+                const customError: any = new Error('Trail not found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const user = await UserModel.findById(userId);
+            if(!user) { 
+                const customError: any = new Error('User not found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            if(!date || !time || !description) {
+                const customError: any = new Error('Date, Time and Description are required to be fullfilled');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError
+            }
+
+            const existingReminderOnThatDate = await ReminderModel.findOne({createdBy: userId, date});
+
+            if(existingReminderOnThatDate) {
+                const customError: any = new Error('A reminder already exists for this user on the same day.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const newReminder = new ReminderModel({
+                date,
+                time,
+                description,
+                createdBy: userId
+            });
+            await newReminder.save();
+            
+            const update = {
+                $push: { reminders: newReminder }
+            };
+            await TrailModel.updateOne({ _id: trailId }, update);
+    
+            return newReminder;
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
     }
 
-
-    async saveReminder(userObj: any) {
-
-        const { date, time, location, description } = userObj;
-        const newReminder = new ReminderModel({
-            date,
-            time,
-            location,
-            description
-        });
-        await newReminder.save();
-        if (!date || !time) {
-            const customError: any = new Error('Date and Time are required to be fullfilled');
-            customError.code = HTTP_CODE.NotFound;
-            throw customError
-        }
-        const existingReminder = await ReminderModel.findOne({ Reminder });
-        if (existingReminder) {
-            const customError: any = new Error('This reminder already exists for this profile');
-            customError.code = HTTP_CODE.NotFound
-
-            throw customError
-        }
-    }
-
-    async deleteReminder(reminderId: string) {
+    async deleteReminder(trailId: string, reminderId: string) {
         try {
-            await ReminderModel.findByIdAndDelete(reminderId);
+            const trail = await TrailModel.findById(trailId).populate('reminders');
+            if (!trail) {
+                const customError: any = new Error('Trail not found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const reminder = trail?.reminders.find(rem => rem._id.toString() === reminderId);
+            if (!reminder) {
+                const customError: any = new Error('Reminder not found in trail.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            trail.reminders = trail.reminders.filter(rem => rem._id.toString() !== reminderId);
+            const response = await trail.save();
+
+            return response;
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
     }
 
-    async updateReminder(userObj: any) {
+    async updateReminder(trailId: string, reminderId: string, reminderData: any) {
         try {
-            const { id, date, time, location, description } = userObj;
+            const { date, time, description } = reminderData;
 
-            if (!date || !time) {
-                const customError: any = new Error('Date and Time are required to be fulfilled');
+            const trail = await TrailModel.findById(trailId).populate('reminders');
+            if (!trail) {
+                const customError: any = new Error('Trail not found.');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-
-            const existingReminder = await ReminderModel.findById(id);
-
-            if (!existingReminder) {
-                const customError: any = new Error('Reminder not found');
+    
+            const reminder: any = trail?.reminders.find(rem => rem._id.toString() === reminderId);
+            if (!reminder) {
+                const customError: any = new Error('Reminder not found in trail.');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-
-            existingReminder.date = date;
-            existingReminder.time = time;
-            existingReminder.location = location;
-            existingReminder.description = description;
-
-            await existingReminder.save();
-
-            return existingReminder;
+    
+            const existingReminderOnThatDate = await ReminderModel.findOne({
+                _id: { $ne: reminderId }, 
+                date,
+                createdBy: reminder.createdBy
+            });
+    
+            if (existingReminderOnThatDate) {
+                const customError: any = new Error('Another reminder already exists for this user on the same day.');
+                customError.code = HTTP_CODE.Conflict;
+                throw customError;
+            }
+    
+            if (date) reminder.date = date;
+            if (time) reminder.time = time;
+            if (description) reminder.description = description;
+    
+            await trail.save();
+            
+            return reminder;
         } catch (error) {
-            console.error('Error updating reminder:', error);
-            throw error;
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
         }
     }
+    
+
+    async getAReminder(trailId: string, reminderId: string) {
+        try {
+            const trail = await TrailModel.findById(trailId).populate('reminders');
+            if (!trail) { 
+                const customError: any = new Error('No trail found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+            const reminder: any = trail?.reminders.find(rem => rem._id.toString() === reminderId);
+            if (!reminder) { 
+                const customError: any = new Error('No reminder found.');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+            return reminder;
+        } catch (error) {
+            console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
 }
