@@ -35,10 +35,10 @@ router.delete(
 );
 router.get('/users/:userId/favorites', HttpRequestHandlers.readFavoriteTrails);
 router.put('/users/:userId', HttpRequestHandlers.updateUser);
-router.post('/reminder/addReminder', HttpRequestHandlers.saveReminder);
-router.delete('/reminder/:reminderId', HttpRequestHandlers.deleteReminder);
-router.put('/reminder/updateReminder', HttpRequestHandlers.updateReminder);
-router.get('/reminder', HttpRequestHandlers.getAllReminders);
+//router.post('/reminder/addReminder', HttpRequestHandlers.saveReminder);
+//router.delete('/reminder/:reminderId', HttpRequestHandlers.deleteReminder);
+//router.put('/reminder/updateReminder', HttpRequestHandlers.updateReminder);
+//router.get('/reminder', HttpRequestHandlers.getAllReminders);
 router.post('/users/:userId/user-trails', HttpRequestHandlers.addPastTrail);
 router.delete(
   '/users/:userId/user-trails/:trailId',

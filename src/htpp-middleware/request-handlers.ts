@@ -285,7 +285,7 @@ export class HttpRequestHandlers {
     }
   };
 
-  static getAllReminders = async (req: Request, res: Response) => {
+ /* static getAllReminders = async (req: Request, res: Response) => {
     try {
       const allReminders = await ReminderModel.find();
       res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
@@ -355,7 +355,7 @@ export class HttpRequestHandlers {
 
           existingReminder.date = date;
           existingReminder.time = time;
-          existingReminder.location = location;
+          //existingReminder.location = location;
           existingReminder.description = description;
 
           const updatedReminder = await existingReminder.save();
@@ -407,7 +407,7 @@ export class HttpRequestHandlers {
       });
       res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
-  };
+  }; */
 
   static addPastTrail = async (req: Request, res: Response) => {
     let data = '';

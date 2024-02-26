@@ -12,12 +12,19 @@ const Reminder = new mongoose.Schema({
         created: time,
         required: true
     },
-    location: {
-        type: String,
-    },
     description: {
         type: String,
-    }
+        required: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    joinedBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }]
 });
 
 const ReminderModel = mongoose.model("Reminder", Reminder);
