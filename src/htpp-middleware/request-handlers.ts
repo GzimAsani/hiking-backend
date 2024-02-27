@@ -387,7 +387,9 @@ export class HttpRequestHandlers {
       try {
         const { trailId, reminderId } = req.params;
         const reminderData = JSON.parse(data);
+        const { userId } = reminderData;
         const reminderController = new ReminderController();
+        await reminderController.joinReminder(reminderId, userId);
         const result = await reminderController.updateReminder(trailId, reminderId, reminderData);
         res.writeHead(HTTP_CODE.Created, {
           'Content-Type': 'application/json',
@@ -404,9 +406,9 @@ export class HttpRequestHandlers {
           })
         );
       }
-    })
+    });
+}
 
-  }
 
   static addPastTrail = async (req: Request, res: Response) => {
     let data = '';
@@ -738,3 +740,7 @@ export class HttpRequestHandlers {
 
 
 }
+function joinReminder(reminderId: string, userId: any) {
+  throw new Error('Function not implemented.');
+}
+

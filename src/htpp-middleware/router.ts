@@ -25,14 +25,8 @@ router.post('/users', HttpRequestHandlers.signup);
 router.delete('/users/:userId', HttpRequestHandlers.deleteUser);
 router.get('/users/email/:email', HttpRequestHandlers.getUserByEmail);
 router.post('/login', HttpRequestHandlers.login);
-router.post(
-  '/users/:userId/favorites/:trailId',
-  HttpRequestHandlers.addFavoriteTrail
-);
-router.delete(
-  '/users/:userId/favorites/:trailId',
-  HttpRequestHandlers.removeFavoriteTrail
-);
+router.post('/users/:userId/favorites/:trailId',HttpRequestHandlers.addFavoriteTrail);
+router.delete('/users/:userId/favorites/:trailId',HttpRequestHandlers.removeFavoriteTrail);
 router.get('/users/:userId/favorites', HttpRequestHandlers.readFavoriteTrails);
 router.put('/users/:userId', HttpRequestHandlers.updateUser);
 router.get('/trails/:trailId/reminders', HttpRequestHandlers.getAllReminders);
@@ -41,17 +35,9 @@ router.delete('/trails/:trailId/reminders/:reminderId', HttpRequestHandlers.dele
 router.post('/trails/:trailId/reminders', HttpRequestHandlers.saveReminder);
 router.put('/trails/:trailId/reminders/:reminderId', HttpRequestHandlers.updateReminder);
 router.post('/users/:userId/user-trails', HttpRequestHandlers.addPastTrail);
-router.delete(
-  '/users/:userId/user-trails/:trailId',
-  HttpRequestHandlers.removePastTrail
-);
+router.delete('/users/:userId/user-trails/:trailId',HttpRequestHandlers.removePastTrail);
 router.get('/users/:userId/user-trails', HttpRequestHandlers.getPastTrails);
-
-router.get(
-  '/users/:userId/user-trails/:trailId',
-  HttpRequestHandlers.getSinglePastTrail
-);
-
+router.get('/users/:userId/user-trails/:trailId',HttpRequestHandlers.getSinglePastTrail);
 router.get('/trails', HttpRequestHandlers.getAllTrails);
 router.get('/trails/:trailId', HttpRequestHandlers.getTrail);
 router.post('/trails', HttpRequestHandlers.createTrail);

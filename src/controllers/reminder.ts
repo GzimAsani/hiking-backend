@@ -2,6 +2,7 @@ import { HTTP_CODE } from "../enums/http-status-codes";
 import ReminderModel from "../models/Reminder";
 import TrailModel from "../models/Trail";
 import UserModel from "../models/User";
+import { Types } from 'mongoose';
 
 
 export class ReminderController {
@@ -58,7 +59,8 @@ export class ReminderController {
                 date,
                 time,
                 description,
-                createdBy: userId
+                createdBy: userId,
+                joinedBy: userId
             });
             await newReminder.save();
             
@@ -102,7 +104,7 @@ export class ReminderController {
 
     async updateReminder(trailId: string, reminderId: string, reminderData: any) {
         try {
-            const { date, time, description } = reminderData;
+            const { date, time, description, joinedBy } = reminderData;
 
             const trail = await TrailModel.findById(trailId).populate('reminders');
             if (!trail) {
@@ -133,6 +135,7 @@ export class ReminderController {
             if (date) reminder.date = date;
             if (time) reminder.time = time;
             if (description) reminder.description = description;
+            if (joinedBy) reminder.joinedBy = joinedBy;
     
             await trail.save();
             
@@ -164,5 +167,31 @@ export class ReminderController {
             throw new Error('Internal Server Error');
         }
     }
+
+    async joinReminder(reminderId: string, userId: any) {
+        try {
+            const reminder = await ReminderModel.findById(reminderId);
+    
+            if (!reminder) {
+                throw new Error('Reminder not found');
+            }
+    
+            const existingReminderOnSameDate = await ReminderModel.findOne({
+                date: reminder.date, 
+                joinedBy: userId
+            });
+    
+            if (existingReminderOnSameDate) {
+                throw new Error('You have already joined a reminder on the same date.');
+            }
+            
+            reminder.joinedBy.push(userId);
+          
+            await reminder.save();
+        } catch (error) {
+            throw error;
+        }
+    }
+
 
 }
