@@ -155,7 +155,7 @@ export class UserController {
                 throw customError;
             }
     
-            const { age, gender, location, availability, skillLevel, interests, phoneNumber, 
+            const { age, gender, description, location, availability, skillLevel, interests, phoneNumber, 
                 socialMedia, equipment, hikeBuddy } = updatedFields;
     
             console.log("User before update:", user);
@@ -194,6 +194,9 @@ export class UserController {
             if (interests) {
                 user.interests = interests;
             }
+            if (description) {
+                user.description = description;
+            }
             if (phoneNumber) {
                 user.phoneNumber = phoneNumber;
             }
@@ -226,7 +229,7 @@ export class UserController {
     
             await user.save();
     
-            return { message: 'User updated successfully!' };
+            return user;
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
