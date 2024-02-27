@@ -18,15 +18,15 @@ export class ReminderController {
 
     async saveReminder(userObj: any) {
 
-        const { date, time, location, description } = userObj;
+        const { date, location, description } = userObj;
         const newReminder = new ReminderModel({
             date,
-            time,
+            // time,
             location,
             description
         });
         await newReminder.save();
-        if (!date || !time) {
+        if (!date) {
             const customError: any = new Error('Date and Time are required to be fullfilled');
             customError.code = HTTP_CODE.NotFound;
             throw customError
@@ -51,9 +51,9 @@ export class ReminderController {
 
     async updateReminder(userObj: any) {
         try {
-            const { id, date, time, location, description } = userObj;
+            const { id, date, location, description } = userObj;
 
-            if (!date || !time) {
+            if (!date) {
                 const customError: any = new Error('Date and Time are required to be fulfilled');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
@@ -68,7 +68,6 @@ export class ReminderController {
             }
 
             existingReminder.date = date;
-            existingReminder.time = time;
             existingReminder.location = location;
             existingReminder.description = description;
 
