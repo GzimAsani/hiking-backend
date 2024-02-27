@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 
 const Reminder = new mongoose.Schema({
     date: {
-        type: String,
+        type: Date,
         created: Date,
         required: true
     },
-    time: {
-        type: String,
-        created: time,
-        required: true
-    },
+    // time: {
+    //     type: String,
+    //     created: time,
+    //     required: true
+    // },
     location: {
         type: String,
     },
