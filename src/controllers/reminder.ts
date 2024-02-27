@@ -193,5 +193,24 @@ export class ReminderController {
         }
     }
 
-
+    async cancelReminder(reminderId: string, userId: any) {
+        try {
+            const reminder = await ReminderModel.findById(reminderId);
+    
+            if (!reminder) {
+                throw new Error('Reminder not found');
+            }
+    
+            const index = reminder.joinedBy.indexOf(userId);
+            if (index === -1) {
+                throw new Error('User has not joined this reminder');
+            }
+    
+            reminder.joinedBy.splice(index, 1);
+    
+            await reminder.save();
+        } catch (error) {
+            throw error;
+        }
+    }
 }

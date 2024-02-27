@@ -409,6 +409,32 @@ export class HttpRequestHandlers {
     });
 }
 
+static cancelReminder = async (req: Request, res: Response) => {
+  try {
+      const { reminderId } = req.params;
+      const { userId } = req.body; 
+
+      if (!userId) {
+        throw new Error('User ID is required to cancel the reminder.');
+      }
+
+      const reminderController = new ReminderController();
+      await reminderController.cancelReminder(reminderId, userId);
+
+      res.writeHead(HTTP_CODE.OK, {
+          'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ message: 'Reminder cancelled successfully' }));
+  } catch (err:any) {
+      res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({
+          error: err.message ? err.message : 'Internal Server Error',
+      }));
+  }
+}
+
 
   static addPastTrail = async (req: Request, res: Response) => {
     let data = '';
@@ -737,10 +763,5 @@ export class HttpRequestHandlers {
       }
     });
   };
-
-
-}
-function joinReminder(reminderId: string, userId: any) {
-  throw new Error('Function not implemented.');
 }
 
