@@ -5,9 +5,13 @@ const Reminder = require('../models/Reminder');
 
 export class ReminderController {
 
-    async getReminders() {
+    async getReminders(location?:string) {
         try {
-            const reminders = await ReminderModel.find();
+            let query={};
+            if(location){
+                query={location:new RegExp(location,'i')}
+            }
+            const reminders = await ReminderModel.find(query);
             return reminders;
         } catch (error) {
             console.error('Error:', error);
