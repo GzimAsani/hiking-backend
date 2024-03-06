@@ -1,11 +1,21 @@
 import UserModel from '../models/User';
 
 export class PastTrailsController {
-  async addPastTrail(userId: string, pastTrailData: any) {
+  async addPastTrail(userId: string, pastTrailData: any, images: any[]) {
     try {
+      const imageObjects = images.map((image) => ({
+        name: image.filename,
+        type: image.mimetype,
+      }));
+
       const query = { _id: userId };
       const update = {
-        $addToSet: { pastTrails: pastTrailData },
+        $addToSet: {
+          pastTrails: {
+            ...pastTrailData,
+            images: imageObjects,
+          },
+        },
       };
 
       const options = { upsert: true };

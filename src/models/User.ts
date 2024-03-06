@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import ImageSchema from './image.model';
 
 const User = new mongoose.Schema({
   firstName: {
@@ -96,6 +97,9 @@ const User = new mongoose.Schema({
       position: {
         lat: String,
         lng: String,
+      },
+      images: {
+        type: [ImageSchema],
       },
     },
   ],
