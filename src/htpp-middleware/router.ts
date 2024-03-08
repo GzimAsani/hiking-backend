@@ -9,16 +9,34 @@ const storage = multer.diskStorage({
   destination: 'src/uploads/profileImages',
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
-})
+  },
+});
 
 const upload = multer({
-  storage: storage
-})
+  storage: storage,
+});
+
+const trailImageStorage = multer.diskStorage({
+  destination: 'src/uploads/pastTrailImages',
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  },
+});
+
+const trailImageUpload = multer({
+  storage: trailImageStorage,
+});
 
 // Define routes
+router.post(
+  '/users/:userId/user-trails',
+  trailImageUpload.array('images'),
+  HttpRequestHandlers.addPastTrail
+);
 router.get('/users', HttpRequestHandlers.data);
 router.get('/users/:userId', HttpRequestHandlers.getUser);
 router.post('/users', HttpRequestHandlers.signup);
@@ -56,14 +74,34 @@ router.get('/trails/:trailId', HttpRequestHandlers.getTrail);
 router.post('/trails', HttpRequestHandlers.createTrail);
 router.put('/trails/:trailId', HttpRequestHandlers.updateTrail);
 router.delete('/trails/:trailId', HttpRequestHandlers.deleteTrail);
-router.post('/trails/:trailId/reviews/:userId', HttpRequestHandlers.rateAndReviewTrail);
-router.put('/trails/:trailId/reviews/:userId', HttpRequestHandlers.updateRateAndReviewTrail);
-router.delete('/trails/:trailId/reviews/:userId', HttpRequestHandlers.deleteReviewTrail);
+router.post(
+  '/trails/:trailId/reviews/:userId',
+  HttpRequestHandlers.rateAndReviewTrail
+);
+router.put(
+  '/trails/:trailId/reviews/:userId',
+  HttpRequestHandlers.updateRateAndReviewTrail
+);
+router.delete(
+  '/trails/:trailId/reviews/:userId',
+  HttpRequestHandlers.deleteReviewTrail
+);
 router.get('/trails/:trailId/reviews', HttpRequestHandlers.getAllReviews);
 router.get('/hikeBuddies', HttpRequestHandlers.getHikeBuddies);
 router.post('/hikeBuddies/search', HttpRequestHandlers.searchHikeBuddies);
-router.post('/upload/:userId', upload.single('profileImage'), HttpRequestHandlers.uploadProfileImg)
-router.use('/profileImages', express.static(path.join(__dirname, '../uploads/profileImages')));
+router.post(
+  '/upload/:userId',
+  upload.single('profileImage'),
+  HttpRequestHandlers.uploadProfileImg
+);
+router.use(
+  '/profileImages',
+  express.static(path.join(__dirname, '../uploads/profileImages'))
+);
+router.use(
+  '/pastTrailimages',
+  express.static(path.join(__dirname, '../uploads/pastTrailimages'))
+);
 router.get('/trails/trail/:trailName', HttpRequestHandlers.getTrailByName);
 
 export default router;
