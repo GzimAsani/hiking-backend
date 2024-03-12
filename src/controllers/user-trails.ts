@@ -19,9 +19,24 @@ export class PastTrailsController {
       };
 
       const options = { upsert: true };
+
       const response = await UserModel.updateOne(query, update, options);
 
-      return response;
+      if (response.modifiedCount === 1) {
+        const user = await UserModel.findById(userId);
+
+        if (user) {
+          const newTrail = user.pastTrails.find(
+            (trail) => trail.name === pastTrailData.name
+          );
+
+          return newTrail;
+        } else {
+          throw new Error('User not found');
+        }
+      } else {
+        throw new Error('Failed to add past trail');
+      }
     } catch (error) {
       console.error('Error adding past trail:', error);
       throw new Error('Failed to add past trail');
