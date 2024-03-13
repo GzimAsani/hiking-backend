@@ -2,6 +2,7 @@ import EventModel from "../models/Event";
 import { HTTP_CODE } from "../enums/http-status-codes";
 import TrailModel from "../models/Trail";
 import UserModel from "../models/User";
+import mongoose from "mongoose";
 
 // const Event = require('../models/Event');
 
@@ -153,6 +154,94 @@ export class EventController{
             return event;
         } catch (error) {
             console.error('Error:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
+    async joinEvent(eventId: string, userId: string) {
+        try {
+            const event = await EventModel.findById(eventId);
+            if (!event) {
+                const customError:any = new Error('Event not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                const customError:any = new Error('User not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const userIdObject = new mongoose.Types.ObjectId(userId);
+            const eventIdObject = new mongoose.Types.ObjectId(eventId);
+
+            if (event.attendees.includes(userIdObject)) {
+                const customError:any = new Error('User is already attending the event');
+                customError.code = HTTP_CODE.Forbidden;
+                throw customError;
+            }
+
+            if (event.maxAttendees && event.attendees.length >= event.maxAttendees) {
+                const customError: any = new Error('Event is already full');
+                customError.code = HTTP_CODE.Forbidden;
+                throw customError;
+            }
+
+            event.attendees.push(userIdObject);
+            await event.save();
+
+            user.eventsAttending.push(eventIdObject);
+            await user.save();
+
+            return { message: 'User joined the event successfully', event };
+
+        } catch (error) {
+            
+        }
+    };
+    
+    async leaveEvent(eventId: string, userId: string) {
+        try {
+            const event = await EventModel.findById(eventId);
+            if (!event) {
+                const customError:any = new Error('Event not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+    
+            const user = await UserModel.findById(userId);
+            if (!user) {
+                const customError:any = new Error('User not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+    
+            const userIdObject = new mongoose.Types.ObjectId(userId);
+            const eventIdObject = new mongoose.Types.ObjectId(eventId);
+
+            if(event.creator.toString() === userIdObject.toString()) {
+                const customError:any = new Error('You host this event and cannot leave it!');
+                customError.code = HTTP_CODE.Forbidden;
+                throw customError;
+            }
+    
+            if (!event.attendees.includes(userIdObject)) {
+                const customError:any = new Error('User is not attending the event');
+                customError.code = HTTP_CODE.Forbidden;
+                throw customError;
+            }
+    
+            event.attendees = event.attendees.filter((attendeeId: mongoose.Types.ObjectId) => attendeeId.toString() !== userIdObject.toString());
+            await event.save();
+    
+            user.eventsAttending = user.eventsAttending.filter((eventId: mongoose.Types.ObjectId) => eventId.toString() !== eventIdObject.toString());
+            await user.save();
+    
+            return { message: 'User left the event successfully', event };
+        } catch (error) {
+            console.error('Error leaving event:', error);
             throw new Error('Internal Server Error');
         }
     }

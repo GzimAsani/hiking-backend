@@ -109,5 +109,7 @@ router.get('/events/:eventId', HttpRequestHandlers.getEventById)
 router.post('/events/:trailId/:creatorId', HttpRequestHandlers.saveEvent);
 router.delete('/events/:eventId/:creatorId', HttpRequestHandlers.deleteEventById);
 router.put('/events/:eventId/:creatorId', HttpRequestHandlers.updateEventById);
+router.post('/events/join/:eventId/:userId', HttpRequestHandlers.joinEvent);
+router.delete('/events/leave/:eventId/:userId', HttpRequestHandlers.leaveEvent);
 
 export default router;

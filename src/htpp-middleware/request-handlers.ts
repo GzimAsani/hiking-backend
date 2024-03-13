@@ -882,14 +882,14 @@ export class HttpRequestHandlers {
       } catch (err: any) {
         console.log(new Error(err).message);
 
-        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          'Content-Type': 'application/json',
-        });
-        res.end(
-          JSON.stringify({
-            error: err.message ? err.message : 'Internal Server Error',
-          })
-        );
+        // res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+        //   'Content-Type': 'application/json',
+        // });
+        // res.end(
+        //   JSON.stringify({
+        //     error: err.message ? err.message : 'Internal Server Error',
+        //   })
+        // );
       }
     })
   };
@@ -959,6 +959,34 @@ export class HttpRequestHandlers {
       }
     })
   };
+  static joinEvent = async (req: Request, res: Response) => {
+    try {
+      const { eventId, userId } = req.params;
+      const eventController = new EventController();
+      await eventController.joinEvent(eventId, userId);
+      res
+        .status(HTTP_CODE.OK)
+        .json({ message: 'User joined event successfully' });
+    } catch (error) {
+      console.error('Error joining to event:', error);
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Failed to join event' });
+    }
+  }
+  static leaveEvent = async (req: Request, res: Response) => {
+    try {
+      const { eventId, userId } = req.params;
+      const eventController = new EventController();
+      await eventController.leaveEvent(eventId, userId);
+      res
+        .status(HTTP_CODE.OK)
+        .json({ message: 'User left event successfully' });
+    } catch (error) {
+      console.error('Error leaving event:', error);
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Failed to leave event' });
+    }
+  }
 }
-
-
