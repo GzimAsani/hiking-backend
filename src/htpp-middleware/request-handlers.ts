@@ -820,21 +820,31 @@ export class HttpRequestHandlers {
       }
     });
   };
-  static getAllEvents = async (req: Request, res: Response): Promise<void> => {
+
+  static getAllEvents = async (req: Request, res: Response) => {
     try {
-        const allEvents: Event[] = await EventModel.find();
-        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(allEvents));
+      const eventController = new EventController();
+      const allEvents = await eventController.getEvents();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(allEvents));
     } catch (error) {
         console.error('Error:', error);
         res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
-  static getEventById = async (req: Request, res: Response): Promise<void> => {
+  static getEventById = async (req: Request, res: Response) => {
     try {
-        const eventId: string = req.params.id;
-        const event: Event | null = await EventModel.findById(eventId);
+        const eventId = req.params.eventId;
+        if(!eventId) {
+          res.writeHead(HTTP_CODE.BadRequest, {
+            'Content-Type': 'application/json',
+          });
+          res.end(JSON.stringify({ error: 'Event ID is required' }));
+          return;
+        }
+        const eventController = new EventController();
+        const event = await eventController.getEventById(eventId);
   
         if (!event) {
             res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
@@ -850,31 +860,42 @@ export class HttpRequestHandlers {
         res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
-  static saveEvent = async (req: Request, res: Response): Promise<void> => {
-    
+  static saveEvent = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const creatorId = req.params.creatorId;
+        const eventObj: any = JSON.parse(data);
+  
+        const eventController = new EventController();
+        const result = await eventController.saveEvent(eventObj, creatorId);
+
+        res.writeHead(HTTP_CODE.Created, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify(result));
+        res.status(HTTP_CODE.Created).json({ message: 'Event saved successfully', result });
+      } catch (err: any) {
+        console.log(new Error(err).message);
+
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    })
+  };
+  static deleteEventById = async (req: Request, res: Response) => {
     try {
-      // Parse the request body as JSON
-      const eventObj = req.body;
-
-      // Create a new instance of the EventController
-      const eventController = new EventController();
-
-      // Save the event using the EventController
-      const event = await eventController.saveEvent(eventObj);
-
-      // Send a success response with the saved event
-      res.status(HTTP_CODE.Created).json({ message: 'Event saved successfully', event });
-  } catch (error) {
-      // Handle errors and send an error response
-      console.error('Error saving event:', error);
-      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
-  }
-};
-  static deleteEventById = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const userId: string = req.params.userId;
-        const eventId: string = req.params.eventId;
-
+        const { eventId, creatorId } = req.params; 
+        const eventController = new EventController();
         const event = await EventModel.findById(eventId);
 
         if (!event) {
@@ -882,56 +903,60 @@ export class HttpRequestHandlers {
             return;
         }
 
-        if (event.creator.toString() !== userId) {
+        if (event.creator.toString() !== creatorId.toString()) {
             res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this event' });
             return;
         }
-        const eventController = new EventController();
-        await eventController.deleteEvent(eventId);
-
+        await eventController.deleteEvent(eventId, creatorId);
         res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
     } catch (error) {
         console.error('Error deleting event:', error);
         res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
     }
 };
-  static updateEventById = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const userId: string = req.params.userId;
-        const eventId: string = req.params.eventId;
-  
-        const event = await EventModel.findById(eventId);
-      
-        if (!event) {
-            res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
-            return;
+  static updateEventById = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { eventId, creatorId } = req.params;
+        const updatedFields = JSON.parse(data);
+        if (!eventId) {
+          res.writeHead(HTTP_CODE.BadRequest, {
+            'Content-Type': 'application/json',
+          });
+          res.end(JSON.stringify({ error: 'Event ID is required' }));
+          return;
         }
-  
-        if (event.creator.toString() !== userId) {
-            res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to update this event' });
-            return;
+        if (!creatorId) {
+          res.writeHead(HTTP_CODE.BadRequest, {
+            'Content-Type': 'application/json',
+          });
+          res.end(JSON.stringify({ error: 'Creator ID is required' }));
+          return;
         }
-  
-        
-        const { trail, attendees, date, time, location, duration, maxAttendees, status, title, description } = req.body;
-        event.trail = trail;
-        event.attendees = attendees;
-        event.date = date;
-        event.time = time;
-        event.location = location;
-        event.duration = duration;
-        event.maxAttendees = maxAttendees;
-        event.status = status;
-        event.title = title;
-        event.description = description;
-        
-        await event.save();
-  
-        res.status(HTTP_CODE.OK).json(event);
-    } catch (error) {
-        console.error('Error updating event:', error);
-        res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
-    }
+        const eventController = new EventController();
+        const result = await eventController.updateEvent(
+          updatedFields,
+          eventId,
+          creatorId
+        );
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message);
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    })
   };
 }
 

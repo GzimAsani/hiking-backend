@@ -1,12 +1,29 @@
 import EventModel from "../models/Event";
 import { HTTP_CODE } from "../enums/http-status-codes";
 
-const Event = require('../models/Event');
+// const Event = require('../models/Event');
 
 export class EventController{
-    saveEvent = async (eventObj: any) => {
+    saveEvent = async (eventObj: any, creatorId: any) => {
         try {
-            const newEvent = new EventModel(eventObj);
+            const { trail, date, time, ...rest} = eventObj;
+            if(!creatorId) {
+                const customError: any = new Error('Creator Id not found!');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError
+            }
+            if(!trail || !date || !time) {
+                const customError: any = new Error('Please check the required fields!');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError
+            }
+            const newEvent = new EventModel({
+                trail,
+                creator: creatorId,
+                date,
+                time,
+                ...rest
+            });
             await newEvent.save();
             return newEvent; 
         } catch (error) {
@@ -15,34 +32,52 @@ export class EventController{
         }
     };
     
-    async deleteEvent(eventId: any) {
+    async deleteEvent(eventId: any, creatorId: any) {
         try {
-            await EventModel.findByIdAndDelete(eventId);
+            const event = await EventModel.findById(eventId);
+            if (!event) {
+                const customError:any = new Error('Event not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            if(event.creator.toString() === creatorId.toString()){
+                await EventModel.findByIdAndDelete(eventId);
+            }
         } catch (error) {
             console.error('Error deleting event:', error);
             throw new Error('Internal Server Error');
         }
     }
     
-    async updateEvent(eventObj: any) {
+    async updateEvent(eventObj: any, eventId:any, creatorId:any) {
         try {
-            const { _id, trail, creator, attendees, date, time, location, duration, maxAttendees, status, title, description } = eventObj;
+            const { attendees, date, time, location, maxAttendees, status, title, description } = eventObj;
     
-            const existingEvent = await EventModel.findById(_id);
+            const existingEvent = await EventModel.findById(eventId);
     
             if (!existingEvent) {
                 const customError:any = new Error('Event not found');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
-            existingEvent.trail = trail;
-            existingEvent.creator = creator;
+            
+            if(existingEvent.creator.toString() !== creatorId.toString()){
+                const customError:any = new Error('You are not the creator of this event and so you cannot change it!');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            if (eventObj.trail || eventObj.creator || eventObj.duration) {
+                const customError: any = new Error('You cannot update the trail, creator, or duration of the event');
+                customError.code = HTTP_CODE.BadRequest;
+                throw customError;
+            }
+
             existingEvent.attendees = attendees;
             existingEvent.date = date;
             existingEvent.time = time;
             existingEvent.location = location;
-            existingEvent.duration = duration;
             existingEvent.maxAttendees = maxAttendees;
             existingEvent.status = status;
             existingEvent.title = title;
@@ -57,13 +92,9 @@ export class EventController{
         }
     }
     
-    async getEvents(location: string | RegExp) {
+    async getEvents() {
         try {
-            let query = {};
-            if (location) {
-                query = { location: new RegExp(location, 'i') };
-            }
-            const events = await EventModel.find(query);
+            const events = await EventModel.find();
             return events;
         } catch (error) {
             console.error('Error retrieving events:', error);

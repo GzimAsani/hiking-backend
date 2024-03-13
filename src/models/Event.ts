@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import TrailModel from "./Trail";
 
 const Event = new mongoose.Schema({
   trail: {
@@ -45,8 +46,12 @@ const Event = new mongoose.Schema({
   }
 });
 
-Event.pre('save', function(next) {
+Event.pre('save', async function(next) {
   if (this.isNew) {
+    const trail = await TrailModel.findById(this.trail);
+    if (trail) {
+      this.duration = trail.duration;
+    }
     this.attendees.push(this.creator);
   }
   next();
