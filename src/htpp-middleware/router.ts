@@ -104,4 +104,9 @@ router.use(
 );
 router.get('/trails/trail/:trailName', HttpRequestHandlers.getTrailByName);
 
+router.get('/events', HttpRequestHandlers.getAllEvents);
+router.post('/events', HttpRequestHandlers.saveEvent);
+router.delete('/events/:eventId/:userId', HttpRequestHandlers.deleteEventById);
+router.put('/events/:eventId/:userId', HttpRequestHandlers.updateEventById);
+
 export default router;
