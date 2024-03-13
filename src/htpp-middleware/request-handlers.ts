@@ -867,11 +867,12 @@ export class HttpRequestHandlers {
     });
     req.on('end', async () => {
       try {
+        const trailId = req.params.trailId;
         const creatorId = req.params.creatorId;
         const eventObj: any = JSON.parse(data);
   
         const eventController = new EventController();
-        const result = await eventController.saveEvent(eventObj, creatorId);
+        const result = await eventController.saveEvent(eventObj, trailId, creatorId);
 
         res.writeHead(HTTP_CODE.Created, {
           'Content-Type': 'application/json',
