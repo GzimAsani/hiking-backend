@@ -11,6 +11,9 @@ import EventModel from '../models/Event';
 import { EventController } from '../controllers/event';
 import { RequestHandler } from 'express';
 import UserModel from '../models/User';
+import mongoose from 'mongoose';
+import { pastTrailImageUpload } from './router';
+import { Readable } from 'stream';
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -426,9 +429,27 @@ export class HttpRequestHandlers {
   static addPastTrail = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const pastTrailData = req.body; // Assuming other form data is sent in the request body
-      const images = req.files as Express.Multer.File[]; // Specify the type of uploaded files
-      console.log(images, pastTrailData);
+      const pastTrailData = req.body;
+      const images = req.files as Express.Multer.File[];
+
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+        bucketName: 'images',
+      });
+
+      for (const file of images) {
+        const existingFile = await bucket
+          .find({ filename: file.filename })
+          .toArray();
+        if (existingFile && existingFile.length > 0) {
+          continue;
+        }
+
+        const uploadStream = bucket.openUploadStream(file.filename);
+        const readableStream = new Readable();
+        readableStream.push(file.buffer);
+        readableStream.push(null);
+      }
+
       if (!userId) {
         return res.status(400).json({ error: 'User ID is required' });
       }
@@ -439,11 +460,35 @@ export class HttpRequestHandlers {
         pastTrailData,
         images
       );
-      console.log('Result :', result);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error adding past trail:', error);
       res.status(500).json({ error: 'Failed to add past trail' });
+    }
+  };
+
+  static getPastTrailImage = async (req: Request, res: Response) => {
+    try {
+      const { imageId } = req.params;
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+        bucketName: 'images',
+      });
+
+      const file = await bucket.find({ filename: imageId }).toArray();
+
+      if (!file || file.length === 0) {
+        return res.status(404).send('Image not found');
+      }
+
+      res.set('Access-Control-Allow-Origin', '*');
+
+      res.contentType('image/png');
+
+      const downloadStream = bucket.openDownloadStreamByName(imageId);
+      downloadStream.pipe(res);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
     }
   };
 
