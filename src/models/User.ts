@@ -103,6 +103,10 @@ const User = new mongoose.Schema({
       },
     },
   ],
+  eventsAttending: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event'
+  }]
 });
 
 const UserModel = mongoose.model('User', User);

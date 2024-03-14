@@ -25,10 +25,10 @@ export class TrailController {
 
     async getTrailByName(trailName: string) {
         try {
-            console.log(' Trail name: ',trailName);
+            //console.log(' Trail name: ',trailName);
             
             const formattedTrailName = trailName.replace(/-/g, ' ');
-            console.log(' Formated Trail name: ',formattedTrailName);
+           // console.log(' Formated Trail name: ',formattedTrailName);
             
             const trail = await TrailModel.findOne({name: formattedTrailName})
             return trail;

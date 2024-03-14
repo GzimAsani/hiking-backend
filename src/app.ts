@@ -8,7 +8,6 @@ app.use(cors({
     origin: '*'
   }));
 
-
 app.use("/", router)
 
 
