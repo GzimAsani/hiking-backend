@@ -124,7 +124,7 @@ router.get('/trails/trail/:trailName', HttpRequestHandlers.getTrailByName);
 
 router.get('/events', HttpRequestHandlers.getAllEvents);
 router.get('/events/:eventId', HttpRequestHandlers.getEventById)
-router.post('/events/:trailId/:creatorId', HttpRequestHandlers.saveEvent);
+router.post('/events/trailId/:trailId/creatorId/:creatorId', HttpRequestHandlers.saveEvent);
 router.delete('/events/:eventId/:creatorId', HttpRequestHandlers.deleteEventById);
 router.put('/events/:eventId/:creatorId', HttpRequestHandlers.updateEventById);
 router.post('/events/join/:eventId/:userId', HttpRequestHandlers.joinEvent);

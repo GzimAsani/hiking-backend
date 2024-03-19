@@ -873,36 +873,36 @@ export class HttpRequestHandlers {
       res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(allEvents));
     } catch (error) {
-        console.error('Error:', error);
-        res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal Server Error' }));
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static getEventById = async (req: Request, res: Response) => {
     try {
-        const eventId = req.params.eventId;
-        if(!eventId) {
-          res.writeHead(HTTP_CODE.BadRequest, {
-            'Content-Type': 'application/json',
-          });
-          res.end(JSON.stringify({ error: 'Event ID is required' }));
-          return;
-        }
-        const eventController = new EventController();
-        const event = await eventController.getEventById(eventId);
-  
-        if (!event) {
-            res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Event not found' }));
-            return;
-        }
-  
-        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(event));
+      const eventId = req.params.eventId;
+      if (!eventId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Event ID is required' }));
+        return;
+      }
+      const eventController = new EventController();
+      const event = await eventController.getEventById(eventId);
+
+      if (!event) {
+        res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Event not found' }));
+        return;
+      }
+
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(event));
     } catch (error) {
-        console.error('Error:', error);
-        res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal Server Error' }));
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static saveEvent = async (req: Request, res: Response) => {
@@ -912,10 +912,11 @@ export class HttpRequestHandlers {
     });
     req.on('end', async () => {
       try {
+
         const trailId = req.params.trailId;
         const creatorId = req.params.creatorId;
         const eventObj: any = JSON.parse(data);
-  
+
         const eventController = new EventController();
         const result = await eventController.saveEvent(eventObj, trailId, creatorId);
 
@@ -940,26 +941,26 @@ export class HttpRequestHandlers {
   };
   static deleteEventById = async (req: Request, res: Response) => {
     try {
-        const { eventId, creatorId } = req.params; 
-        const eventController = new EventController();
-        const event = await EventModel.findById(eventId);
+      const { eventId, creatorId } = req.params;
+      const eventController = new EventController();
+      const event = await EventModel.findById(eventId);
 
-        if (!event) {
-            res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
-            return;
-        }
+      if (!event) {
+        res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
+        return;
+      }
 
-        if (event.creator.toString() !== creatorId.toString()) {
-            res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this event' });
-            return;
-        }
-        await eventController.deleteEvent(eventId, creatorId);
-        res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
+      if (event.creator.toString() !== creatorId.toString()) {
+        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this event' });
+        return;
+      }
+      await eventController.deleteEvent(eventId, creatorId);
+      res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
     } catch (error) {
-        console.error('Error deleting event:', error);
-        res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+      console.error('Error deleting event:', error);
+      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
     }
-};
+  };
   static updateEventById = async (req: Request, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {

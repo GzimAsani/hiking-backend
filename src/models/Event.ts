@@ -20,10 +20,10 @@ const Event = new mongoose.Schema({
     type: Date,
     required: true
   },
-  time: {
-    type: String,
-    required: true
-  },
+  // time: {
+  //   type: Date,
+  //   required: true
+  // },
   location: {
     type: String
   },
@@ -46,7 +46,7 @@ const Event = new mongoose.Schema({
   }
 });
 
-Event.pre('save', async function(next) {
+Event.pre('save', async function (next) {
   if (this.isNew) {
     const trail = await TrailModel.findById(this.trail);
     if (trail) {
