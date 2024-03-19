@@ -33,6 +33,7 @@ const User = new mongoose.Schema({
   },
   description: {
     type: String,
+    default: null
   },
   profileImg: {
     type: String,
@@ -42,31 +43,52 @@ const User = new mongoose.Schema({
     type: Number,
     min: [1, 'Age cannot be less than 1'],
     max: [150, 'Age cannot be greater than 150'],
+    default: null
   },
   gender: {
     type: String,
     enum: ['male', 'female'],
+    default: null
   },
   location: {
     type: String,
+    default: null
   },
   availability: {
     type: String,
+    default: null
   },
   skillLevel: {
     type: String,
     enum: ['beginner', 'intermediate', 'advanced'],
+    default: null
   },
-  interests: [String],
+  interests: {
+    type: [String],
+    default: []
+  },
   phoneNumber: {
     type: String,
+    default: null
   },
   socialMedia: {
-    facebook: String,
-    twitter: String,
-    instagram: String,
+    facebook: {
+      type: String,
+      default: null
+    },
+    twitter: {
+      type: String,
+      default: null
+    },
+    instagram: {
+      type: String,
+      default: null
+    },
   },
-  equipment: [String],
+  equipment: {
+    type: [String],
+    default: null
+  },
   created_at: {
     type: Date,
     default: Date.now,
