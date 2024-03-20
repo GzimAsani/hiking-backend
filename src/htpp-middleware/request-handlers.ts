@@ -1090,8 +1090,8 @@ export class HttpRequestHandlers {
         res.end(JSON.stringify({ error: 'Blog ID is required' }));
         return;
       }
-      const blogsController = new BlogsController();
-      const blog = await blogsController.getBlogById(blogId);
+      const blog = await BlogsModel.findById(blogId);
+
       if (!blog) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
@@ -1147,22 +1147,23 @@ export class HttpRequestHandlers {
   static deleteBlogById = async (req: Request, res: Response) => {
     try {
       const { blogId, authorId } = req.params;
-      const blogsController = new BlogsController();
       const blog = await BlogsModel.findById(blogId);
+      const blogsController = new BlogsController();
 
       if (!blog) {
-        res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
+        res.status(HTTP_CODE.NotFound).json({ error: 'Blog not found' });
         return;
       }
 
       if (blog.author.toString() !== authorId.toString()) {
-        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this event' });
+        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this blog' });
         return;
       }
       await blogsController.deleteBlog(blogId, authorId);
-      res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
+      res.status(HTTP_CODE.OK).json({ message: 'Blog deleted successfully' });
+
     } catch (error) {
-      console.error('Error deleting event:', error);
+      console.error('Error deleting blog:', error);
       res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
     }
   };

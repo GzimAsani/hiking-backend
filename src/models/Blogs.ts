@@ -19,7 +19,8 @@ const Blogs = new mongoose.Schema({
         type: String,
     },
     images: {
-        type: Image,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ImageSchema'
     }
 
 });

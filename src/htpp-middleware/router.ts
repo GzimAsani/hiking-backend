@@ -133,6 +133,6 @@ router.delete('/events/leave/:eventId/:userId', HttpRequestHandlers.leaveEvent);
 router.get('/blogs', HttpRequestHandlers.getAllBlogs);
 router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
 router.post('/blogs', HttpRequestHandlers.saveBlogs);
-router.delete('/blogs/:blogsId/:authorId', HttpRequestHandlers.deleteBlogById);
-router.put('/blogs/:blogsId/:authorId', HttpRequestHandlers.updateBlog);
+router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
+router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
 export default router;
