@@ -866,10 +866,12 @@ export class HttpRequestHandlers {
     });
   };
 
+  // Import your models
+
+
   static getAllEvents = async (req: Request, res: Response) => {
     try {
-      const eventController = new EventController();
-      const allEvents = await eventController.getEvents();
+      const allEvents = await EventModel.find().populate('creator', 'firstName lastName');
       res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
       res.end(JSON.stringify(allEvents));
     } catch (error) {
@@ -880,6 +882,7 @@ export class HttpRequestHandlers {
       res.end(JSON.stringify({ error: "Internal Server Error" }));
     }
   };
+
   static getEventById = async (req: Request, res: Response) => {
     try {
       const eventId = req.params.eventId;
