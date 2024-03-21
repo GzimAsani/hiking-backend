@@ -144,4 +144,13 @@ router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
 router.post('/blogs', HttpRequestHandlers.saveBlogs);
 router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
 router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
+
+router.get('/reviews', HttpRequestHandlers.getAllReviewsComponent);
+router.get('/reviews/:reviewId', HttpRequestHandlers.getAllReviewsById);
+router.post('/reviews', HttpRequestHandlers.saveReviews);
+router.delete('/reviews/:reviewId/:authorId', HttpRequestHandlers.deleteReview);
+router.put('/reviews/:reviewId', HttpRequestHandlers.updateReview);
+
+
+
 export default router;
