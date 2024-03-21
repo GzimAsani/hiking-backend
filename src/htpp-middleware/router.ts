@@ -139,4 +139,9 @@ router.post(
 router.post("/events/join/:eventId/:userId", HttpRequestHandlers.joinEvent);
 router.delete("/events/leave/:eventId/:userId", HttpRequestHandlers.leaveEvent);
 
+router.get('/blogs', HttpRequestHandlers.getAllBlogs);
+router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
+router.post('/blogs', HttpRequestHandlers.saveBlogs);
+router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
+router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
 export default router;

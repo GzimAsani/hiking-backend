@@ -1,19 +1,21 @@
-import { UserController } from "../controllers/user";
-import { HTTP_CODE } from "../enums/http-status-codes";
-import { Request, Response } from "express";
-import ReminderModel from "../models/Reminder";
-import { ReminderController } from "../controllers/reminder";
-import { PastTrailsController } from "../controllers/user-trails";
-import { TrailController } from "../controllers/trail";
-import fs from "fs";
-import { promisify } from "util";
-import EventModel from "../models/Event";
-import { EventController } from "../controllers/event";
-import { RequestHandler } from "express";
-import UserModel from "../models/User";
-import mongoose from "mongoose";
-import { pastTrailImageUpload } from "./router";
-import { Readable } from "stream";
+import { UserController } from '../controllers/user';
+import { HTTP_CODE } from '../enums/http-status-codes';
+import { Request, Response } from 'express';
+import ReminderModel from '../models/Reminder';
+import { ReminderController } from '../controllers/reminder';
+import { PastTrailsController } from '../controllers/user-trails';
+import { TrailController } from '../controllers/trail';
+import fs from 'fs';
+import { promisify } from 'util';
+import EventModel from '../models/Event';
+import { EventController } from '../controllers/event';
+import { RequestHandler } from 'express';
+import UserModel from '../models/User';
+import mongoose from 'mongoose';
+import { pastTrailImageUpload } from './router';
+import { Readable } from 'stream';
+import { BlogsController } from '../controllers/blogs';
+import BlogsModel from '../models/Blogs';
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -875,11 +877,9 @@ export class HttpRequestHandlers {
       res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
       res.end(JSON.stringify(allEvents));
     } catch (error) {
-      console.error("Error:", error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
-      });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
@@ -888,30 +888,26 @@ export class HttpRequestHandlers {
       const eventId = req.params.eventId;
       if (!eventId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Event ID is required" }));
+        res.end(JSON.stringify({ error: 'Event ID is required' }));
         return;
       }
       const eventController = new EventController();
       const event = await eventController.getEventById(eventId);
 
       if (!event) {
-        res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
-        });
-        res.end(JSON.stringify({ error: "Event not found" }));
+        res.writeHead(HTTP_CODE.NotFound, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Event not found' }));
         return;
       }
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(event));
     } catch (error) {
-      console.error("Error:", error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
-      });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static saveEvent = async (req: Request, res: Response) => {
@@ -924,6 +920,7 @@ export class HttpRequestHandlers {
         const trailId = req.params.trailId;
         const creatorId = req.params.creatorId;
         const eventObj: any = JSON.parse(data);
+
 
         const eventController = new EventController();
         const result = await eventController.saveEvent(
@@ -958,26 +955,26 @@ export class HttpRequestHandlers {
       const { eventId, creatorId } = req.params;
       const eventController = new EventController();
       const event = await EventModel.findById(eventId);
+      const { eventId, creatorId } = req.params;
+      const eventController = new EventController();
+      const event = await EventModel.findById(eventId);
 
       if (!event) {
-        res.status(HTTP_CODE.NotFound).json({ error: "Event not found" });
+        res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
         return;
       }
 
       if (event.creator.toString() !== creatorId.toString()) {
-        res
-          .status(HTTP_CODE.Forbidden)
-          .json({ error: "You are not authorized to delete this event" });
+        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this event' });
         return;
       }
       await eventController.deleteEvent(eventId, creatorId);
-      res.status(HTTP_CODE.OK).json({ message: "Event deleted successfully" });
+      res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
     } catch (error) {
-      console.error("Error deleting event:", error);
-      res
-        .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Internal Server Error" });
+      console.error('Error deleting event:', error);
+      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
     }
+  };
   };
   static updateEventById = async (req: Request, res: Response) => {
     let data = "";
@@ -1054,3 +1051,134 @@ export class HttpRequestHandlers {
     }
   };
 }
+  static saveBlogs = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const blogsObj: any = JSON.parse(data);
+        const blogsController = new BlogsController();
+        const result = await blogsController.saveBlog(blogsObj);
+
+        res.writeHead(HTTP_CODE.Created, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
+        console.log(new Error(err).message);
+
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+  static getAllBlogs = async (req: Request, res: Response) => {
+    try {
+      const blogsController = new BlogsController();
+      const blogs = await blogsController.getBlogs();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(blogs));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+  static getBlogsById = async (req: Request, res: Response) => {
+    try {
+      const blogId = req.url?.split('/')[2];
+      if (!blogId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Blog ID is required' }));
+        return;
+      }
+      const blog = await BlogsModel.findById(blogId);
+
+      if (!blog) {
+        res.writeHead(HTTP_CODE.NotFound, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ message: `Blog ${blogId} not found` }));
+      } else {
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(blog));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+  static updateBlog = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const blogId = req.params.blogId;
+        const updatedFields = JSON.parse(data);
+        if (!blogId) {
+          res.writeHead(HTTP_CODE.BadRequest, {
+            'Content-Type': 'application/json',
+          });
+          res.end(JSON.stringify({ error: 'User ID is required' }));
+          return;
+        }
+        const blogsController = new BlogsController();
+        const result = await blogsController.updateBlog(blogId, updatedFields);
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
+        console.log(new Error(err).message);
+
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+  static deleteBlogById = async (req: Request, res: Response) => {
+    try {
+      const { blogId, authorId } = req.params;
+      const blog = await BlogsModel.findById(blogId);
+      const blogsController = new BlogsController();
+
+      if (!blog) {
+        res.status(HTTP_CODE.NotFound).json({ error: 'Blog not found' });
+        return;
+      }
+
+      if (blog.author.toString() !== authorId.toString()) {
+        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this blog' });
+        return;
+      }
+      await blogsController.deleteBlog(blogId, authorId);
+      res.status(HTTP_CODE.OK).json({ message: 'Blog deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+    }
+  };

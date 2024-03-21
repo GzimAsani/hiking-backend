@@ -5,14 +5,14 @@ import cors from 'cors'
 
 const app = express();
 app.use(cors({
-    origin: '*'
-  }));
+  origin: '*'
+}));
 
 app.use("/", router)
 
 
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
-    res.send('Hello');
+  res.send('Hello');
 });
 app.listen(5000, () => console.log('Server running'));
