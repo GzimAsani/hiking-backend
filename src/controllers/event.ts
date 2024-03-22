@@ -162,7 +162,7 @@ export class EventController {
 
     async joinEvent(eventId: string, userId: string) {
         try {
-            const event = await EventModel.findById(eventId);
+            let event = await EventModel.findById(eventId).populate('attendees');
             if (!event) {
                 const customError: any = new Error('Event not found');
                 customError.code = HTTP_CODE.NotFound;
@@ -179,7 +179,7 @@ export class EventController {
             const userIdObject = new mongoose.Types.ObjectId(userId);
             const eventIdObject = new mongoose.Types.ObjectId(eventId);
 
-            if (event.attendees.includes(userIdObject)) {
+            if (event.attendees.some(attendee => attendee._id.toString() === userIdObject.toString())) {
                 const customError: any = new Error('User is already attending the event');
                 customError.code = HTTP_CODE.Forbidden;
                 throw customError;
@@ -191,22 +191,29 @@ export class EventController {
                 throw customError;
             }
 
+
+            const userName = `${user.firstName} ${user.lastName}`;
+
+            console.log('name', userName)
+            event.attendeeNames.push(userName);
             event.attendees.push(userIdObject);
+
+
             await event.save();
-
-            user.eventsAttending.push(eventIdObject);
-            await user.save();
-
             return { message: 'User joined the event successfully', event };
 
         } catch (error) {
-
+            console.error('Error joining event:', error);
+            throw new Error('Internal Server Error');
         }
     };
 
+
+
+
     async leaveEvent(eventId: string, userId: string) {
         try {
-            const event = await EventModel.findById(eventId);
+            let event = await EventModel.findById(eventId).populate('attendees');
             if (!event) {
                 const customError: any = new Error('Event not found');
                 customError.code = HTTP_CODE.NotFound;
@@ -229,17 +236,26 @@ export class EventController {
                 throw customError;
             }
 
-            if (!event.attendees.includes(userIdObject)) {
+            if (!event.attendees.some(attendee => attendee._id.toString() === userIdObject.toString())) {
                 const customError: any = new Error('User is not attending the event');
                 customError.code = HTTP_CODE.Forbidden;
                 throw customError;
             }
 
-            event.attendees = event.attendees.filter((attendeeId: mongoose.Types.ObjectId) => attendeeId.toString() !== userIdObject.toString());
+            const userFullName = `${user.firstName} ${user.lastName}`;
+            console.log("Attendees:");
+
+
+            event.attendees = event.attendees.filter(attendee => attendee._id.toString() !== userIdObject.toString());
+            event.attendeeNames = event.attendeeNames.filter(name => name !== userFullName);
+
             await event.save();
 
-            user.eventsAttending = user.eventsAttending.filter((eventId: mongoose.Types.ObjectId) => eventId.toString() !== eventIdObject.toString());
+
+            user.eventsAttending = user.eventsAttending.filter(eventId => eventId.toString() !== eventIdObject.toString());
             await user.save();
+
+            console.log("Attendees:");
 
             return { message: 'User left the event successfully', event };
         } catch (error) {
@@ -247,4 +263,6 @@ export class EventController {
             throw new Error('Internal Server Error');
         }
     }
+
+
 }
