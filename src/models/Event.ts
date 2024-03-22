@@ -1,61 +1,73 @@
 import mongoose from "mongoose";
 import TrailModel from "./Trail";
+import UserModel from "./User";
 
 const Event = new mongoose.Schema({
   trail: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Trail',
-    required: true
+    ref: "Trail",
+    required: true,
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
-  attendees: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  attendeeNames: [{
-    type: String
-  }],
+  attendees: [
+    // {
+    // type: mongoose.Schema.Types.ObjectId,
+    // ref: "User",
+    // },
+  ],
+  attendeeNames: [
+    {
+      type: String,
+    },
+  ],
   date: {
     type: Date,
-    required: true
+    required: true,
   },
   // time: {
   //   type: Date,
   //   required: true
   // },
   location: {
-    type: String
+    type: String,
   },
   duration: {
-    type: Number
+    type: Number,
   },
   maxAttendees: {
-    type: Number
+    type: Number,
   },
   status: {
     type: String,
-    enum: ['active', 'canceled', 'completed'],
-    default: 'active'
+    enum: ["active", "canceled", "completed"],
+    default: "active",
   },
   title: {
-    type: String
+    type: String,
   },
   description: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-Event.pre('save', async function (next) {
+Event.pre("save", async function (next) {
   if (this.isNew) {
     const trail = await TrailModel.findById(this.trail);
+    const user = await UserModel.findById(this.creator._id);
+
     if (trail) {
       this.duration = trail.duration;
     }
-    this.attendees.push(this.creator);
+
+    this.attendees.push({
+      _id: user?._id,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+    });
   }
   next();
 });
