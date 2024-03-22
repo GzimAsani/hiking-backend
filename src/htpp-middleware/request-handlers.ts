@@ -1196,4 +1196,141 @@ export class HttpRequestHandlers {
       res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
     }
   };
+
+  static getAllReviewsComponent = async (req: Request, res: Response) => {
+    try {
+      const reviewController = new ReviewController();
+      const reviews = await reviewController.getReviews();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(reviews));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
+  static getAllReviewsById = async (req: Request, res: Response) => {
+    try {
+      const reviewId = req.url?.split('/')[2];
+      if (!reviewId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Review ID is required' }));
+        return;
+      }
+      const blog = await BlogsModel.findById(reviewId);
+
+      if (!blog) {
+        res.writeHead(HTTP_CODE.NotFound, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ message: `Review ${reviewId} not found` }));
+      } else {
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(blog));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
+  static saveReviews = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const reviewsObj: any = JSON.parse(data);
+        const reviewController = new ReviewController();
+        const result = await reviewController.saveReview(reviewsObj);
+
+        res.writeHead(HTTP_CODE.Created, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
+        console.log(new Error(err).message);
+
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+
+  static deleteReview = async (req: Request, res: Response) => {
+    try {
+      const { reviewId, authorId } = req.params;
+      const review = await ReviewsModel.findById(reviewId);
+      const reviewController = new ReviewController();
+
+      if (!review) {
+        res.status(HTTP_CODE.NotFound).json({ error: 'Review not found' });
+        return;
+      }
+
+      if (review.author.toString() !== authorId.toString()) {
+        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this review' });
+        return;
+      }
+      await reviewController.deleteReview(reviewId, authorId);
+      res.status(HTTP_CODE.OK).json({ message: 'Review deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+    }
+  };
+
+
+  static updateReview = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const reviewId = req.params.reviewId;
+        const updateReview = JSON.parse(data);
+        if (!reviewId) {
+          res.writeHead(HTTP_CODE.BadRequest, {
+            'Content-Type': 'application/json',
+          });
+          res.end(JSON.stringify({ error: 'Review ID is required or miss typed' }));
+          return;
+        }
+        const reviewController = new ReviewController();
+        const result = await reviewController.updateReview(reviewId, updateReview);
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
+        console.log(new Error(err).message);
+
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
 }
