@@ -1,6 +1,6 @@
 import { UserController } from '../controllers/user';
 import { HTTP_CODE } from '../enums/http-status-codes';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import ReminderModel from '../models/Reminder';
 import { ReminderController } from '../controllers/reminder';
 import { PastTrailsController } from '../controllers/user-trails';
@@ -1192,5 +1192,64 @@ export class HttpRequestHandlers {
         .status(HTTP_CODE.InternalServerError)
         .json({ error: 'Internal Server Error' });
     }
+  };
+
+
+  
+  static uploadProfilePicture = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const image = req.file as Express.Multer.File; 
+      
+
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+        bucketName: 'images',
+      });
+  
+      const uploadStream = bucket.openUploadStream(image.filename);
+      const readableStream = new Readable();
+      readableStream.push(image.buffer);
+      readableStream.push(null);
+
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      const userController = new UserController();
+      const result = await userController.uploadProfilePicture(userId, image);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error handling profile picture upload:', error);
+      res.status(500).json({ error: 'Failed to handle profile picture upload' });
+    }
+  };
+
+
+  static readImageFromBucket = async (req: Request, res: Response, next: NextFunction) => {
+    const filename = req.params.filename;
+    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+      bucketName: 'images',
+    });
+  
+    const downloadStream = bucket.openDownloadStreamByName(filename);
+    console.log(downloadStream);
+    
+  
+    let imageData = Buffer.from([]);
+  
+    downloadStream.on('data', (chunk) => {
+      imageData = Buffer.concat([imageData, chunk]);
+    });
+
+    downloadStream.on('end', () => {
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set('Content-Type', 'image/jpeg');
+      res.send(imageData);
+    });
+  
+    downloadStream.on('error', (error) => {
+      console.error('Error reading image from GridFS:', error);
+      res.status(500).json({ error: 'Failed to read image' });
+    });
   };
 }

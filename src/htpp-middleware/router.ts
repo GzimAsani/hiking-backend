@@ -6,6 +6,7 @@ import { Request } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import path from "path";
 import { GridFsStorage } from "multer-gridfs-storage";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -144,4 +145,13 @@ router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
 router.post('/blogs', HttpRequestHandlers.saveBlogs);
 router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
 router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
+
+router.post(
+  '/users/:userId/profilePicture',
+  pastTrailImageUpload.single('images'),
+  HttpRequestHandlers.uploadProfilePicture
+);
+
+router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
+
 export default router;
