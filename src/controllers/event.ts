@@ -3,12 +3,10 @@ import { HTTP_CODE } from "../enums/http-status-codes";
 import TrailModel from "../models/Trail";
 import UserModel from "../models/User";
 import mongoose from "mongoose";
-import { UserController } from "./user";
-
-// const Event = require('../models/Event');
+import { ReminderController } from "./reminder";
 
 export class EventController {
-    saveEvent = async (eventObj: any, trailId: any, creatorId: any) => {
+    async saveEvent(eventObj: any, trailId: any, creatorId: any) {
         console.log("SAVE EVENT");
         try {
             const { date, ...rest } = eventObj;
@@ -23,37 +21,50 @@ export class EventController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-
+    
             const user = await UserModel.findById(creatorId);
-
             if (!user) {
                 const customError: any = new Error("User not found!");
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-
+    
             const trailIdObj = new mongoose.Types.ObjectId(trailId);
-
             const newEvent = new EventModel({
                 trail: trailIdObj,
                 creator: creatorId,
                 date,
                 ...rest,
             });
-
+    
             await newEvent.save();
-
+    
             existingTrail.events.push(newEvent._id);
             await existingTrail.save();
-
+    
             user.eventsAttending.push(newEvent._id);
             await user.save();
+            
+    
+            const creatorReminderDate = new Date(date);
+            creatorReminderDate.setDate(creatorReminderDate.getDate() - 1);
+            const creatorMessage = `${newEvent.location} is happening tomorrow.`;
+
+            const reminderController = new ReminderController();
+            await reminderController.createReminder({
+                userId: creatorId,
+                eventId: newEvent._id,
+                reminderDate: creatorReminderDate,
+                message: creatorMessage,
+            });
+    
             return newEvent;
         } catch (error) {
             console.error("Error saving event:", error);
             throw new Error("Internal Server Error");
         }
-    };
+    }
+    
 
     async deleteEvent(eventId: any, creatorId: any) {
         try {
@@ -169,7 +180,6 @@ export class EventController {
     async getEventById(eventId: string) {
         try {
             const event = await EventModel.findById(eventId);
-
             return event;
         } catch (error) {
             console.error("Error:", error);
@@ -223,6 +233,18 @@ export class EventController {
 
             user.eventsAttending.push(eventIdObject);
             user.save();
+
+            const creatorReminderDate = new Date(event.date);
+            creatorReminderDate.setDate(creatorReminderDate.getDate() - 1);
+            const creatorMessage = `${event.location} is happening tomorrow.`;
+
+            const reminderController = new ReminderController();
+            await reminderController.createReminder({
+                userId: userId,
+                eventId: eventId,
+                reminderDate: creatorReminderDate,
+                message: creatorMessage,
+            });
 
             return { message: "User joined the event successfully", event };
         } catch (error) {

@@ -85,8 +85,82 @@
 //     }
 // }
 
+import { HTTP_CODE } from "../enums/http-status-codes";
+import EventModel from "../models/Event";
+import ReminderModel from "../models/Reminder";
+import UserModel from "../models/User";
+
 export class ReminderController {
-    async createReminder (reminderData: any) {
-        
+    async createReminder(reminderData: any) {
+        try {
+            const { userId, eventId, reminderDate, message } = reminderData;
+            const user = await UserModel.findById(userId);
+            const event = await EventModel.findById(eventId);
+
+            if(!user || !event) {
+                const customError: any = new Error('User or Event not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            if(!reminderDate) {
+                const customError: any = new Error('The time of this reminder is required');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+
+            const newReminder = new ReminderModel({
+                userId,
+                eventId,
+                reminderDate,
+                message
+            });
+
+            await newReminder.save();
+
+            
+            user.reminders.push(newReminder._id);
+            await user.save();
+
+            return newReminder;
+        } catch (error) {
+            console.error("Error creating reminder:", error);
+            throw new Error("Internal Server Error");
+        }
+    }
+
+    async getReminderById(reminderId: string) {
+        try {
+            const reminder = await ReminderModel.findById(reminderId);
+            return reminder;
+        } catch (error) {
+            console.error("Error:", error);
+            throw new Error("Internal Server Error");
+        }
+    }
+
+    async getUserReminders(userId: string) {
+        try {
+            const user = await UserModel.findById(userId).populate("reminders");
+            if (!user) {
+                const customError: any = new Error('User not found');
+                customError.code = HTTP_CODE.NotFound;
+                throw customError;
+            }
+            return user.reminders;
+        } catch (error) {
+            console.error("Error retrieving user reminders:", error);
+            throw new Error("Internal Server Error");
+        }
+    }
+
+    async getAllReminders() {
+        try {
+            const reminders = await ReminderModel.find();
+            return reminders;
+        } catch (error) {
+            console.error("Error retrieving all reminders:", error);
+            throw new Error("Internal Server Error");
+        }
     }
 }
