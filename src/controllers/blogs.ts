@@ -1,6 +1,5 @@
-import { HTTP_CODE } from "../enums/http-status-codes";
 import BlogsModel from "../models/Blogs";
-import TrailModel from "../models/Trail";
+import UserModel from "../models/User";
 
 export class BlogsController {
 
@@ -38,16 +37,28 @@ export class BlogsController {
         }
     }
 
-    async saveBlog(blogData: any) {
+    async saveBlog(authorId: string, blogData: any, images: any[]) {
         try {
-            const newBlog = await BlogsModel.create(blogData);
+            const imageObjects = images.map((image) => ({
+                name: image.filename,
+                type: image.mimetype,
+            }));
+    
+            const newBlogData = {
+                ...blogData,
+                author: authorId,
+                images: imageObjects,
+            };
+    
+            const newBlog = await BlogsModel.create(newBlogData);
+    
             return newBlog;
         } catch (error) {
-            console.error('Error:', error);
-            throw new Error('Internal Server Error');
+            console.error('Error adding blog:', error);
+            throw new Error('Failed to add blog');
         }
     }
-
+    
     async updateBlog(blogId: string, updatedFields: any) {
         try {
             const updatedBlog = await BlogsModel.findByIdAndUpdate(blogId, updatedFields, { new: true });

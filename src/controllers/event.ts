@@ -3,6 +3,7 @@ import { HTTP_CODE } from "../enums/http-status-codes";
 import TrailModel from "../models/Trail";
 import UserModel from "../models/User";
 import mongoose from "mongoose";
+import { UserController } from "./user";
 
 // const Event = require('../models/Event');
 
@@ -175,10 +176,10 @@ export class EventController {
             throw new Error("Internal Server Error");
         }
     }
-
+    
     async joinEvent(eventId: string, userId: string) {
         try {
-            let event = await EventModel.findById(eventId).populate("attendees");
+            let event = await EventModel.findById(eventId);
             if (!event) {
                 const customError: any = new Error("Event not found");
                 customError.code = HTTP_CODE.NotFound;
@@ -196,8 +197,8 @@ export class EventController {
             const eventIdObject = new mongoose.Types.ObjectId(eventId);
 
             if (
-                event.attendees.some(
-                    (attendee) => attendee._id.toString() === userIdObject.toString()
+                event.attendees.find(
+                    (attendee) => attendee._id?.toString() === userIdObject.toString()
                 )
             ) {
                 const customError: any = new Error(
@@ -218,8 +219,11 @@ export class EventController {
                 firstName: user?.firstName,
                 lastName: user?.lastName,
             });
-
             await event.save();
+
+            user.eventsAttending.push(eventIdObject);
+            user.save();
+
             return { message: "User joined the event successfully", event };
         } catch (error) {
             console.error("Error joining event:", error);
@@ -229,7 +233,7 @@ export class EventController {
 
     async leaveEvent(eventId: string, userId: string) {
         try {
-            let event = await EventModel.findById(eventId).populate("trail");
+            let event = await EventModel.findById(eventId);
             if (!event) {
                 const customError: any = new Error("Event not found");
                 customError.code = HTTP_CODE.NotFound;
@@ -255,8 +259,8 @@ export class EventController {
             }
 
             if (
-                !event.attendees.some(
-                    (attendee) => attendee._id.toString() === userIdObject.toString()
+                !event.attendees.find(
+                    (attendee) => attendee._id?.toString() === userIdObject.toString()
                 )
             ) {
                 const customError: any = new Error("User is not attending the event");
@@ -264,12 +268,11 @@ export class EventController {
                 throw customError;
             }
 
-            const userFullName = `${user.firstName} ${user.lastName}`;
-            console.log("Attendees:");
-
-            event.attendees = event.attendees.filter(
-                (attendee) => attendee._id.toString() !== userIdObject.toString()
-            );
+        
+            const indexToRemove = event.attendees.findIndex(attendee => attendee._id?.toString() === userIdObject.toString());
+            if (indexToRemove !== -1) {
+                event.attendees.splice(indexToRemove, 1);
+            }
 
             await event.save();
 
@@ -277,8 +280,6 @@ export class EventController {
                 (eventId) => eventId.toString() !== eventIdObject.toString()
             );
             await user.save();
-
-            console.log("Attendees:");
 
             return { message: "User left the event successfully", event };
         } catch (error) {

@@ -2,7 +2,6 @@ import { UserController } from '../controllers/user';
 import { HTTP_CODE } from '../enums/http-status-codes';
 import { NextFunction, Request, Response } from 'express';
 import ReminderModel from '../models/Reminder';
-import { ReminderController } from '../controllers/reminder';
 import { PastTrailsController } from '../controllers/user-trails';
 import { TrailController } from '../controllers/trail';
 import fs from 'fs';
@@ -304,135 +303,138 @@ export class HttpRequestHandlers {
     }
   };
 
-  static getAllReminders = async (req: Request, res: Response) => {
-    try {
-      const allReminders = await ReminderModel.find();
-      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(allReminders));
-    } catch (error) {
-      console.error('Error:', error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        'Content-Type': 'application/json',
-      });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
-    }
-  };
+  // static getAllReminders = async (req: Request, res: Response) => {
+  //   try {
+  //     const allReminders = await ReminderModel.find();
+  //     res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+  //     res.end(JSON.stringify(allReminders));
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     res.writeHead(HTTP_CODE.InternalServerError, {
+  //       'Content-Type': 'application/json',
+  //     });
+  //     res.end(JSON.stringify({ error: 'Internal Server Error' }));
+  //   }
+  // };
 
-  static saveReminder = async (req: Request, res: Response) => {
-    let data = '';
+  // static saveReminder = async (req: Request, res: Response) => {
+  //   let data = '';
 
-    req.on('data', (chunk) => {
-      data += chunk;
-    });
+  //   req.on('data', (chunk) => {
+  //     data += chunk;
+  //   });
 
-    req.on('end', async () => {
-      try {
-        const reminderObj: any = JSON.parse(data);
+  //   req.on('end', async () => {
+  //     try {
+  //       const reminderObj: any = JSON.parse(data);
 
-        const reminderController = new ReminderController();
-        const result = await reminderController.saveReminder(reminderObj);
+  //       const reminderController = new ReminderController();
+  //       const result = await reminderController.saveReminder(reminderObj);
 
-        res.writeHead(HTTP_CODE.Created, {
-          'Content-Type': 'application/json',
-        });
-        res.end(JSON.stringify(result));
-      } catch (err: any) {
-        console.error('An error occurred while saving reminder:', err);
+  //       res.writeHead(HTTP_CODE.Created, {
+  //         'Content-Type': 'application/json',
+  //       });
+  //       res.end(JSON.stringify(result));
+  //     } catch (err: any) {
+  //       console.error('An error occurred while saving reminder:', err);
 
-        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          'Content-Type': 'application/json',
-        });
-        res.end(
-          JSON.stringify({
-            error: err.message ? err.message : 'Internal Server Error',
-          })
-        );
-      }
-    });
-  };
+  //       res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+  //         'Content-Type': 'application/json',
+  //       });
+  //       res.end(
+  //         JSON.stringify({
+  //           error: err.message ? err.message : 'Internal Server Error',
+  //         })
+  //       );
+  //     }
+  //   });
+  // };
 
-  static updateReminder = async (req: Request, res: Response) => {
-    const Reminder = require('../models/Reminder');
-    try {
-      let data = '';
-      req.on('data', (chunk) => {
-        data += chunk;
-      });
-      req.on('end', async () => {
-        try {
-          const { id, date, time, location, description } = JSON.parse(data);
+  // static updateReminder = async (req: Request, res: Response) => {
+  //   const Reminder = require('../models/Reminder');
+  //   try {
+  //     let data = '';
+  //     req.on('data', (chunk) => {
+  //       data += chunk;
+  //     });
+  //     req.on('end', async () => {
+  //       try {
+  //         const { id, date, time, location, description } = JSON.parse(data);
 
-          const existingReminder = await Reminder.findById(id);
+  //         const existingReminder = await Reminder.findById(id);
 
-          if (!existingReminder) {
-            res.writeHead(HTTP_CODE.NotFound, {
-              'Content-Type': 'application/json',
-            });
-            res.end(JSON.stringify({ error: 'Reminder not found' }));
-            return;
-          }
+  //         if (!existingReminder) {
+  //           res.writeHead(HTTP_CODE.NotFound, {
+  //             'Content-Type': 'application/json',
+  //           });
+  //           res.end(JSON.stringify({ error: 'Reminder not found' }));
+  //           return;
+  //         }
 
-          existingReminder.date = date;
-          existingReminder.time = time;
-          existingReminder.location = location;
-          existingReminder.description = description;
+  //         existingReminder.date = date;
+  //         existingReminder.time = time;
+  //         existingReminder.location = location;
+  //         existingReminder.description = description;
 
-          const updatedReminder = await existingReminder.save();
+  //         const updatedReminder = await existingReminder.save();
 
-          res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(updatedReminder));
-        } catch (error) {
-          console.error('Error:', error);
-          res.writeHead(HTTP_CODE.InternalServerError, {
-            'Content-Type': 'application/json',
-          });
-          res.end(JSON.stringify({ error: 'Internal Server Error' }));
-        }
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        'Content-Type': 'application/json',
-      });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
-    }
-  };
+  //         res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+  //         res.end(JSON.stringify(updatedReminder));
+  //       } catch (error) {
+  //         console.error('Error:', error);
+  //         res.writeHead(HTTP_CODE.InternalServerError, {
+  //           'Content-Type': 'application/json',
+  //         });
+  //         res.end(JSON.stringify({ error: 'Internal Server Error' }));
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     res.writeHead(HTTP_CODE.InternalServerError, {
+  //       'Content-Type': 'application/json',
+  //     });
+  //     res.end(JSON.stringify({ error: 'Internal Server Error' }));
+  //   }
+  // };
 
-  static deleteReminder = async (req: Request, res: Response) => {
-    try {
-      const reminderId = req.url?.split('/')[2];
-      if (!reminderId) {
-        res.writeHead(HTTP_CODE.BadRequest, {
-          'Content-Type': 'application/json',
-        });
-        res.end(JSON.stringify({ error: 'Reminder ID is required' }));
-        return;
-      }
-      const reminderController = new ReminderController();
-      await reminderController.deleteReminder(reminderId);
-      if (!reminderController) {
-        res.writeHead(HTTP_CODE.NotFound, {
-          'Content-Type': 'application/json',
-        });
-        res.end(JSON.stringify({ error: 'Reminder not found' }));
-        return;
-      }
-      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: `Reminder deleted successfully` }));
-    } catch (error) {
-      console.error('Error:', error);
-      res.writeHead(HTTP_CODE.InternalServerError, {
-        'Content-Type': 'application/json',
-      });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
-    }
-  };
+  // static deleteReminder = async (req: Request, res: Response) => {
+  //   try {
+  //     const reminderId = req.url?.split('/')[2];
+  //     if (!reminderId) {
+  //       res.writeHead(HTTP_CODE.BadRequest, {
+  //         'Content-Type': 'application/json',
+  //       });
+  //       res.end(JSON.stringify({ error: 'Reminder ID is required' }));
+  //       return;
+  //     }
+  //     const reminderController = new ReminderController();
+  //     await reminderController.deleteReminder(reminderId);
+  //     if (!reminderController) {
+  //       res.writeHead(HTTP_CODE.NotFound, {
+  //         'Content-Type': 'application/json',
+  //       });
+  //       res.end(JSON.stringify({ error: 'Reminder not found' }));
+  //       return;
+  //     }
+  //     res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+  //     res.end(JSON.stringify({ message: `Reminder deleted successfully` }));
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     res.writeHead(HTTP_CODE.InternalServerError, {
+  //       'Content-Type': 'application/json',
+  //     });
+  //     res.end(JSON.stringify({ error: 'Internal Server Error' }));
+  //   }
+  // };
 
   static addPastTrail = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
       const pastTrailData = req.body;
       const images = req.files as Express.Multer.File[];
+
+      console.log(images);
+      
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: 'images',
@@ -1058,36 +1060,47 @@ export class HttpRequestHandlers {
         .json({ error: 'Failed to leave event' });
     }
   };
-
-  static saveBlogs = async (req: Request, res: Response) => {
-    let data = '';
-    req.on('data', (chunk) => {
-      data += chunk;
-    });
-    req.on('end', async () => {
-      try {
-        const blogsObj: any = JSON.parse(data);
-        const blogsController = new BlogsController();
-        const result = await blogsController.saveBlog(blogsObj);
-
-        res.writeHead(HTTP_CODE.Created, {
-          'Content-Type': 'application/json',
-        });
-        res.end(JSON.stringify(result));
-      } catch (err: any) {
-        console.log('AFTER THIS ERROR SHOULD APPEAR');
-        console.log(new Error(err).message);
-
-        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          'Content-Type': 'application/json',
-        });
-        res.end(
-          JSON.stringify({
-            error: err.message ? err.message : 'Internal Server Error',
-          })
-        );
+  
+  static saveBlog = async (req: Request, res: Response) => {
+    try {
+      const { authorId } = req.params;
+      const blogData = req.body;
+      const images = req.files as Express.Multer.File[];
+    
+      if (!authorId) {
+        return res.status(400).json({ error: 'Author ID is required' });
       }
-    });
+
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+        bucketName: 'images',
+      });
+
+      for (const file of images) {
+        const existingFile = await bucket
+          .find({ filename: file.filename })
+          .toArray();
+        if (existingFile && existingFile.length > 0) {
+          continue;
+        }
+
+        const uploadStream = bucket.openUploadStream(file.filename);
+        const readableStream = new Readable();
+        readableStream.push(file.buffer);
+        readableStream.push(null);
+      }
+      
+
+      const blogController = new BlogsController();
+      const result = await blogController.saveBlog(
+        authorId,
+        blogData,
+        images
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error adding blog post:', error);
+      res.status(500).json({ error: 'Failed to add blog post' });
+    }
   };
   static getAllBlogs = async (req: Request, res: Response) => {
     try {

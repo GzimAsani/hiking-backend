@@ -128,6 +128,10 @@ const User = new mongoose.Schema({
   eventsAttending: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'
+  }],
+  reminders: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reminder'
   }]
 });
 

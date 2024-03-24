@@ -70,10 +70,10 @@ router.delete(
 );
 router.get("/users/:userId/favorites", HttpRequestHandlers.readFavoriteTrails);
 router.put("/users/:userId", HttpRequestHandlers.updateUser);
-router.post("/reminder/addReminder", HttpRequestHandlers.saveReminder);
-router.delete("/reminder/:reminderId", HttpRequestHandlers.deleteReminder);
-router.put("/reminder/updateReminder", HttpRequestHandlers.updateReminder);
-router.get("/reminder", HttpRequestHandlers.getAllReminders);
+// router.post("/reminder/addReminder", HttpRequestHandlers.saveReminder);
+// router.delete("/reminder/:reminderId", HttpRequestHandlers.deleteReminder);
+// router.put("/reminder/updateReminder", HttpRequestHandlers.updateReminder);
+// router.get("/reminder", HttpRequestHandlers.getAllReminders);
 
 router.post(
   "/users/:userId/user-trails",
@@ -142,7 +142,7 @@ router.delete("/events/leave/:eventId/:userId", HttpRequestHandlers.leaveEvent);
 
 router.get('/blogs', HttpRequestHandlers.getAllBlogs);
 router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
-router.post('/blogs', HttpRequestHandlers.saveBlogs);
+router.post('/blogs/:authorId', pastTrailImageUpload.array("images"), HttpRequestHandlers.saveBlog);
 router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
 router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
 
