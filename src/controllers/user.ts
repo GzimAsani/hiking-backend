@@ -306,5 +306,34 @@ export class UserController {
           throw new Error('Internal server error');
         }
     }
+
+    async uploadProfilePicture(userId: string, image: any) {
+        try {
+            const imageObject = {
+                name: image.filename,
+                type: image.mimetype,
+            };
+    
+            const query = { _id: userId };
+            const update = {
+                profileImg: imageObject 
+            };
+            const options = { upsert: true };
+    
+            await UserModel.updateOne(query, update, options);
+    
+            const user = await UserModel.findById(userId);
+    
+            if (user) {
+                const newProfileImg = user.profileImg;
+                return newProfileImg;
+            } else {
+                throw new Error('User not found');
+            }
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+            throw new Error('Failed to upload profile picture');
+        }
+    }
        
 }

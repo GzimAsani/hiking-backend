@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import ImageSchema from "./image.model";
 
 const Blogs = new mongoose.Schema({
     date: {
         type: Date,
-        created: Date,
+        default: Date.now,
         required: true
     },
     author: {
@@ -19,8 +20,11 @@ const Blogs = new mongoose.Schema({
         type: String,
     },
     images: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ImageSchema'
+        type: [ImageSchema]
+    },
+    seenCount: {
+        type: Number,
+        default: 0
     }
 
 });

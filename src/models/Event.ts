@@ -14,24 +14,16 @@ const Event = new mongoose.Schema({
     required: true,
   },
   attendees: [
-    // {
-    // type: mongoose.Schema.Types.ObjectId,
-    // ref: "User",
-    // },
-  ],
-  attendeeNames: [
     {
-      type: String,
-    },
+      _id: String,
+      firstName: String,
+      lastName: String,
+    }
   ],
   date: {
     type: Date,
     required: true,
   },
-  // time: {
-  //   type: Date,
-  //   required: true
-  // },
   location: {
     type: String,
   },

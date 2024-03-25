@@ -1,9 +1,6 @@
 import express from "express";
 import { HttpRequestHandlers } from "../htpp-middleware/request-handlers";
 import multer from "multer";
-
-import { Request } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
 import path from "path";
 import { GridFsStorage } from "multer-gridfs-storage";
 
@@ -21,15 +18,6 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
 });
-
-// const trailImageStorage = multer.diskStorage({
-//   destination: 'src/uploads/pastTrailImages',
-//   filename: (req, file, cb) => {
-//     const ext = path.extname(file.originalname);
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-//     cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-//   },
-// });
 
 const pastTrailImageStorage = new GridFsStorage({
   url:
@@ -69,10 +57,9 @@ router.delete(
 );
 router.get("/users/:userId/favorites", HttpRequestHandlers.readFavoriteTrails);
 router.put("/users/:userId", HttpRequestHandlers.updateUser);
-router.post("/reminder/addReminder", HttpRequestHandlers.saveReminder);
-router.delete("/reminder/:reminderId", HttpRequestHandlers.deleteReminder);
-router.put("/reminder/updateReminder", HttpRequestHandlers.updateReminder);
-router.get("/reminder", HttpRequestHandlers.getAllReminders);
+router.get("/reminders", HttpRequestHandlers.getAllReminders);
+router.get("/reminders/:reminderId", HttpRequestHandlers.getReminderById);
+router.get("/reminders/user/:userId", HttpRequestHandlers.getUserReminders);
 
 router.post(
   "/users/:userId/user-trails",
@@ -110,15 +97,6 @@ router.delete(
 router.get("/trails/:trailId/reviews", HttpRequestHandlers.getAllReviews);
 router.get("/hikeBuddies", HttpRequestHandlers.getHikeBuddies);
 router.post("/hikeBuddies/search", HttpRequestHandlers.searchHikeBuddies);
-router.post(
-  "/upload/:userId",
-  upload.single("profileImage"),
-  HttpRequestHandlers.uploadProfileImg
-);
-router.use(
-  "/profileImages",
-  express.static(path.join(__dirname, "../uploads/profileImages"))
-);
 
 router.get("/trails/trail/:trailName", HttpRequestHandlers.getTrailByName);
 
@@ -141,7 +119,16 @@ router.delete("/events/leave/:eventId/:userId", HttpRequestHandlers.leaveEvent);
 
 router.get('/blogs', HttpRequestHandlers.getAllBlogs);
 router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
-router.post('/blogs', HttpRequestHandlers.saveBlogs);
+router.post('/blogs/:authorId', pastTrailImageUpload.array("images"), HttpRequestHandlers.saveBlog);
 router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
 router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
+
+router.post(
+  '/users/:userId/profilePicture',
+  pastTrailImageUpload.single('images'),
+  HttpRequestHandlers.uploadProfilePicture
+);
+
+router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
+
 export default router;

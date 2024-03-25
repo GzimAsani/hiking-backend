@@ -36,8 +36,8 @@ const User = new mongoose.Schema({
     default: null
   },
   profileImg: {
-    type: String,
-    default: null,
+    type: ImageSchema,
+    // default: null,
   },
   age: {
     type: Number,
@@ -65,7 +65,7 @@ const User = new mongoose.Schema({
   },
   interests: {
     type: [String],
-    default: []
+    default: null
   },
   phoneNumber: {
     type: String,
@@ -128,6 +128,10 @@ const User = new mongoose.Schema({
   eventsAttending: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'
+  }],
+  reminders: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reminder'
   }]
 });
 
