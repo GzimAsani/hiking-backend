@@ -11,16 +11,9 @@ import mongoose from 'mongoose';
 import { Readable } from 'stream';
 import { BlogsController } from '../controllers/blogs';
 import BlogsModel from '../models/Blogs';
+import { ReminderController } from '../controllers/reminder';
 import { ReviewController } from '../controllers/review';
 import ReviewsModel from '../models/Review';
-import { ReminderController } from '../controllers/reminder';
-
-const writeFileAsync = promisify(fs.writeFile);
-
-interface UploadedFile {
-  name: string;
-  type: string;
-}
 
 export class HttpRequestHandlers {
   static data = async (req: Request, res: Response) => {
@@ -1159,16 +1152,16 @@ export class HttpRequestHandlers {
         res.end(JSON.stringify({ error: 'Review ID is required' }));
         return;
       }
-      const review = await ReviewsModel.findById(reviewId);
+      const blog = await BlogsModel.findById(reviewId);
 
-      if (!review) {
+      if (!blog) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Review ${reviewId} not found` }));
       } else {
         res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(review));
+        res.end(JSON.stringify(blog));
       }
     } catch (error) {
       console.error('Error:', error);

@@ -60,6 +60,9 @@ router.put("/users/:userId", HttpRequestHandlers.updateUser);
 router.get("/reminders", HttpRequestHandlers.getAllReminders);
 router.get("/reminders/:reminderId", HttpRequestHandlers.getReminderById);
 router.get("/reminders/user/:userId", HttpRequestHandlers.getUserReminders);
+router.get("/reminders", HttpRequestHandlers.getAllReminders);
+router.get("/reminders/:reminderId", HttpRequestHandlers.getReminderById);
+router.get("/reminders/user/:userId", HttpRequestHandlers.getUserReminders);
 
 router.post(
   "/users/:userId/user-trails",
@@ -130,6 +133,15 @@ router.delete('/reviews/:reviewId/:authorId', HttpRequestHandlers.deleteReview);
 router.put('/reviews/:reviewId', HttpRequestHandlers.updateReview);
 
 
+
+
+router.post(
+  '/users/:userId/profilePicture',
+  pastTrailImageUpload.single('images'),
+  HttpRequestHandlers.uploadProfilePicture
+);
+
+router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
 
 
 router.post(
