@@ -21,14 +21,14 @@ export class EventController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const user = await UserModel.findById(creatorId);
             if (!user) {
                 const customError: any = new Error("User not found!");
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const trailIdObj = new mongoose.Types.ObjectId(trailId);
             const newEvent = new EventModel({
                 trail: trailIdObj,
@@ -36,16 +36,16 @@ export class EventController {
                 date,
                 ...rest,
             });
-    
+
             await newEvent.save();
-    
+
             existingTrail.events.push(newEvent._id);
             await existingTrail.save();
-    
+
             user.eventsAttending.push(newEvent._id);
             await user.save();
-            
-    
+
+
             const creatorReminderDate = new Date(date);
             creatorReminderDate.setDate(creatorReminderDate.getDate() - 1);
             const creatorMessage = `${newEvent.location} is happening tomorrow.`;
@@ -57,14 +57,14 @@ export class EventController {
                 reminderDate: creatorReminderDate,
                 message: creatorMessage,
             });
-    
+
             return newEvent;
         } catch (error) {
             console.error("Error saving event:", error);
             throw new Error("Internal Server Error");
         }
     }
-    
+
 
     async deleteEvent(eventId: any, creatorId: any) {
         try {
@@ -180,13 +180,16 @@ export class EventController {
     async getEventById(eventId: string) {
         try {
             const event = await EventModel.findById(eventId);
+            // const event = await EventModel.deleteMany({})
+
+
             return event;
         } catch (error) {
             console.error("Error:", error);
             throw new Error("Internal Server Error");
         }
     }
-    
+
     async joinEvent(eventId: string, userId: string) {
         try {
             let event = await EventModel.findById(eventId);
@@ -290,7 +293,7 @@ export class EventController {
                 throw customError;
             }
 
-        
+
             const indexToRemove = event.attendees.findIndex(attendee => attendee._id?.toString() === userIdObject.toString());
             if (indexToRemove !== -1) {
                 event.attendees.splice(indexToRemove, 1);

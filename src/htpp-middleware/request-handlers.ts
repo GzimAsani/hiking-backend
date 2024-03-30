@@ -286,7 +286,7 @@ export class HttpRequestHandlers {
   static getReminderById = async (req: Request, res: Response) => {
     try {
       const { reminderId } = req.params;
-      
+
       if (!reminderId) {
         res.writeHead(HTTP_CODE.BadRequest, {
           'Content-Type': 'application/json',
@@ -296,7 +296,7 @@ export class HttpRequestHandlers {
       }
       const reminderController = new ReminderController();
       const reminder = await reminderController.getReminderById(reminderId);
-      
+
       if (!reminder) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
@@ -317,7 +317,7 @@ export class HttpRequestHandlers {
   static getUserReminders = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      
+
       if (!userId) {
         res.writeHead(HTTP_CODE.BadRequest, {
           'Content-Type': 'application/json',
@@ -327,7 +327,7 @@ export class HttpRequestHandlers {
       }
       const reminderController = new ReminderController();
       const reminders = await reminderController.getUserReminders(userId);
-      
+
       if (!reminders) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
@@ -353,7 +353,7 @@ export class HttpRequestHandlers {
       const images = req.files as Express.Multer.File[];
 
       console.log(images);
-      
+
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: 'images',
@@ -493,7 +493,7 @@ export class HttpRequestHandlers {
         return;
       }
       const trailController = new TrailController();
-      const trail = await trailController.getTrailById(trailId);
+      const trail = await trailController.getTrailById(trailId)
       if (!trail) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
@@ -979,13 +979,13 @@ export class HttpRequestHandlers {
         .json({ error: 'Failed to leave event' });
     }
   };
-  
+
   static saveBlog = async (req: Request, res: Response) => {
     try {
       const { authorId } = req.params;
       const blogData = req.body;
       const images = req.files as Express.Multer.File[];
-    
+
       if (!authorId) {
         return res.status(400).json({ error: 'Author ID is required' });
       }
@@ -1007,7 +1007,7 @@ export class HttpRequestHandlers {
         readableStream.push(file.buffer);
         readableStream.push(null);
       }
-      
+
 
       const blogController = new BlogsController();
       const result = await blogController.saveBlog(
@@ -1267,13 +1267,13 @@ export class HttpRequestHandlers {
   static uploadProfilePicture = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const image = req.file as Express.Multer.File; 
-      
+      const image = req.file as Express.Multer.File;
+
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: 'images',
       });
-  
+
       const uploadStream = bucket.openUploadStream(image.filename);
       const readableStream = new Readable();
       readableStream.push(image.buffer);
@@ -1298,13 +1298,13 @@ export class HttpRequestHandlers {
     const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
       bucketName: 'images',
     });
-  
+
     const downloadStream = bucket.openDownloadStreamByName(filename);
     console.log(downloadStream);
-    
-  
+
+
     let imageData = Buffer.from([]);
-  
+
     downloadStream.on('data', (chunk) => {
       imageData = Buffer.concat([imageData, chunk]);
     });
@@ -1314,7 +1314,7 @@ export class HttpRequestHandlers {
       res.set('Content-Type', 'image/jpeg');
       res.send(imageData);
     });
-  
+
     downloadStream.on('error', (error) => {
       console.error('Error reading image from GridFS:', error);
       res.status(500).json({ error: 'Failed to read image' });

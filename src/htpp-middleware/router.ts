@@ -104,6 +104,7 @@ router.post("/hikeBuddies/search", HttpRequestHandlers.searchHikeBuddies);
 router.get("/trails/trail/:trailName", HttpRequestHandlers.getTrailByName);
 
 router.get("/events", HttpRequestHandlers.getAllEvents);
+
 router.get("/events/:eventId", HttpRequestHandlers.getEventById);
 router.post(
   "/events/trailId/:trailId/creatorId/:creatorId",

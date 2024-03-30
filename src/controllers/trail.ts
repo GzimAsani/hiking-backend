@@ -15,7 +15,7 @@ export class TrailController {
 
     async getTrailById(trailId: string) {
         try {
-            const trail = await TrailModel.findById(trailId);
+            const trail = await TrailModel.findById(trailId).populate('events')
             return trail;
         } catch (error) {
             console.error('Error:', error);
@@ -26,11 +26,11 @@ export class TrailController {
     async getTrailByName(trailName: string) {
         try {
             //console.log(' Trail name: ',trailName);
-            
+
             const formattedTrailName = trailName.replace(/-/g, ' ');
-           // console.log(' Formated Trail name: ',formattedTrailName);
-            
-            const trail = await TrailModel.findOne({name: formattedTrailName})
+            // console.log(' Formated Trail name: ',formattedTrailName);
+
+            const trail = await TrailModel.findOne({ name: formattedTrailName })
             return trail;
         } catch (error) {
             console.error('Error:', error);
@@ -38,9 +38,9 @@ export class TrailController {
         }
     }
 
-    async createTrail(trailObj:any) {
+    async createTrail(trailObj: any) {
         const { name, location, difficulty, length, photos, ...rest } = trailObj;
-        if(!name || !location || !difficulty || !length || !photos) {
+        if (!name || !location || !difficulty || !length || !photos) {
             const customError: any = new Error('Please check the required fields!');
             customError.code = HTTP_CODE.NotFound;
 
@@ -57,7 +57,7 @@ export class TrailController {
         })
 
         await newTrail.save();
-        return {message: "Trail created succesfully!"}
+        return { message: "Trail created succesfully!" }
     }
 
     async deleteTrail(trailId: string) {
@@ -77,10 +77,10 @@ export class TrailController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const { name, location, difficulty, length, elevationGain, duration, routeType, status, description,
                 photos, keyFeatures, tags } = updatedFields;
-    
+
             if (name) trail.name = name;
             if (location) trail.location = location;
             if (difficulty) trail.difficulty = difficulty;
@@ -93,9 +93,9 @@ export class TrailController {
             if (photos) trail.photos = photos;
             if (keyFeatures) trail.keyFeatures = keyFeatures;
             if (tags) trail.tags = tags;
-    
+
             await trail.save();
-    
+
             return { message: "Trail updated successfully!" };
         } catch (error) {
             console.error('Error:', error);
@@ -103,16 +103,16 @@ export class TrailController {
         }
     }
 
-    async rateAndReviewTrail (trailId: string, userId: string, rating: number, comment: string) {
+    async rateAndReviewTrail(trailId: string, userId: string, rating: number, comment: string) {
         try {
             const trail = await TrailModel.findById(trailId);
-            if(!trail) {
+            if (!trail) {
                 const customError: any = new Error('Trail not found!');
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
 
-            const existingReview = trail.reviews.findIndex( index => index.user?.toString() === userId);
+            const existingReview = trail.reviews.findIndex(index => index.user?.toString() === userId);
             if (existingReview !== -1) {
                 throw new Error('User has already rated or reviewed this trail.');
             }
@@ -135,23 +135,23 @@ export class TrailController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const existingReview = trail.reviews.findIndex(index => index.user?.toString() === userId);
             if (existingReview === -1) {
                 throw new Error('User has not rated or reviewed this trail yet.');
             }
-    
+
             trail.reviews[existingReview].rating = rating;
             trail.reviews[existingReview].comment = comment;
             await trail.save();
-    
+
             return { message: "Trail review updated successfully!" };
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
     }
-    
+
     async deleteReview(trailId: string, userId: string) {
         try {
             const trail = await TrailModel.findById(trailId);
@@ -160,22 +160,22 @@ export class TrailController {
                 customError.code = HTTP_CODE.NotFound;
                 throw customError;
             }
-    
+
             const existingReview = trail.reviews.findIndex(review => review.user?.toString() === userId);
             if (existingReview === -1) {
                 throw new Error('Review not found for this user and trail.');
             }
-    
+
             trail.reviews.splice(existingReview, 1);
             await trail.save();
-    
+
             return { message: "Review deleted successfully!" };
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
         }
     }
-    
+
     async getAllReivews(trailId: string) {
         try {
             const trail = await TrailModel.findById(trailId);
@@ -187,7 +187,7 @@ export class TrailController {
 
             const reviews = trail.reviews;
             return reviews;
-            
+
         } catch (error) {
             console.error('Error:', error);
             throw new Error('Internal Server Error');
