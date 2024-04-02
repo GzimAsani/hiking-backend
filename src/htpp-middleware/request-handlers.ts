@@ -1065,6 +1065,12 @@ export class HttpRequestHandlers {
     }
   };
   static updateBlog = async (req: Request, res: Response) => {
+
+    // update image if image exists you cant upload the same image
+    // replace the image by index find proper index of the image in queue and replace it with the new one
+    //how much images you have 
+
+
     try {
       const blogId = req.params.blogId;
       const updatedFields = req.body;

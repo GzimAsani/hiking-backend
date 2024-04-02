@@ -124,7 +124,7 @@ router.get('/blogs', HttpRequestHandlers.getAllBlogs);
 router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
 router.post('/blogs/:authorId', pastTrailImageUpload.array("images"), HttpRequestHandlers.saveBlog);
 router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
-router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
+router.put('/blogs/:blogId', pastTrailImageUpload.array("images"), HttpRequestHandlers.updateBlog);
 
 router.get('/reviews', HttpRequestHandlers.getAllReviewsComponent);
 router.get('/reviews/:reviewId', HttpRequestHandlers.getAllReviewsById);
