@@ -51,6 +51,7 @@ export class BlogsController {
             };
     
             const newBlog = await BlogsModel.create(newBlogData);
+            await UserModel.findByIdAndUpdate(authorId, { $push: { blogPosts: newBlog._id } });
     
             return newBlog;
         } catch (error) {

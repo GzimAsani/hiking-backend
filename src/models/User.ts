@@ -132,6 +132,10 @@ const User = new mongoose.Schema({
   reminders: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Reminder'
+  }],
+  blogPosts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Blogs'
   }]
 });
 
