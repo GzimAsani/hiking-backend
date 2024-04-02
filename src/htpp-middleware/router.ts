@@ -103,8 +103,13 @@ router.post("/hikeBuddies/search", HttpRequestHandlers.searchHikeBuddies);
 
 router.get("/trails/trail/:trailName", HttpRequestHandlers.getTrailByName);
 
+router.get(
+  "/trails/:trailId/events",
+  HttpRequestHandlers.getAllEventsByTrailId
+);
 router.get("/events", HttpRequestHandlers.getAllEvents);
 router.get("/events/:eventId", HttpRequestHandlers.getEventById);
+
 router.post(
   "/events/trailId/:trailId/creatorId/:creatorId",
   HttpRequestHandlers.saveEvent
@@ -117,39 +122,40 @@ router.post(
   "/events/:eventId/creatorId/:creatorId",
   HttpRequestHandlers.updateEventById
 );
+
 router.post("/events/join/:eventId/:userId", HttpRequestHandlers.joinEvent);
 router.delete("/events/leave/:eventId/:userId", HttpRequestHandlers.leaveEvent);
 
-router.get('/blogs', HttpRequestHandlers.getAllBlogs);
-router.get('/blogs/:blogsId', HttpRequestHandlers.getBlogsById);
-router.post('/blogs/:authorId', pastTrailImageUpload.array("images"), HttpRequestHandlers.saveBlog);
-router.delete('/blogs/:blogId/:authorId', HttpRequestHandlers.deleteBlogById);
-router.put('/blogs/:blogId/', HttpRequestHandlers.updateBlog);
+router.get("/blogs", HttpRequestHandlers.getAllBlogs);
+router.get("/blogs/:blogsId", HttpRequestHandlers.getBlogsById);
+router.post(
+  "/blogs/:authorId",
+  pastTrailImageUpload.array("images"),
+  HttpRequestHandlers.saveBlog
+);
+router.delete("/blogs/:blogId/:authorId", HttpRequestHandlers.deleteBlogById);
+router.put("/blogs/:blogId/", HttpRequestHandlers.updateBlog);
 
-router.get('/reviews', HttpRequestHandlers.getAllReviewsComponent);
-router.get('/reviews/:reviewId', HttpRequestHandlers.getAllReviewsById);
-router.post('/reviews', HttpRequestHandlers.saveReviews);
-router.delete('/reviews/:reviewId/:authorId', HttpRequestHandlers.deleteReview);
-router.put('/reviews/:reviewId', HttpRequestHandlers.updateReview);
-
-
-
+router.get("/reviews", HttpRequestHandlers.getAllReviewsComponent);
+router.get("/reviews/:reviewId", HttpRequestHandlers.getAllReviewsById);
+router.post("/reviews", HttpRequestHandlers.saveReviews);
+router.delete("/reviews/:reviewId/:authorId", HttpRequestHandlers.deleteReview);
+router.put("/reviews/:reviewId", HttpRequestHandlers.updateReview);
 
 router.post(
-  '/users/:userId/profilePicture',
-  pastTrailImageUpload.single('images'),
+  "/users/:userId/profilePicture",
+  pastTrailImageUpload.single("images"),
   HttpRequestHandlers.uploadProfilePicture
 );
 
-router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
-
+router.get("/images/:filename", HttpRequestHandlers.readImageFromBucket);
 
 router.post(
-  '/users/:userId/profilePicture',
-  pastTrailImageUpload.single('images'),
+  "/users/:userId/profilePicture",
+  pastTrailImageUpload.single("images"),
   HttpRequestHandlers.uploadProfilePicture
 );
 
-router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
+router.get("/images/:filename", HttpRequestHandlers.readImageFromBucket);
 
 export default router;
