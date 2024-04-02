@@ -802,26 +802,30 @@ export class HttpRequestHandlers {
       let events: any = [];
       const currentDate = new Date();
 
-      const descendQuery: any = { date: -1 };
-      // const ascendQuery: any = { date: 1 };
+      // const descendQuery: any = { date: -1 };
+      const ascendQuery: any = { date: 1 };
 
       switch (mode) {
         case "incoming":
           events = await EventModel.find({
             trail: objectIdTrailId,
             date: { $gte: currentDate },
-          }).sort(descendQuery);
+          })
+            .populate("creator")
+            .sort(ascendQuery);
           break;
         case "past":
           events = await EventModel.find({
             trail: objectIdTrailId,
             date: { $lt: currentDate },
-          })?.sort(descendQuery);
+          })
+            .populate("creator")
+            .sort(ascendQuery);
           break;
         default:
-          events = await EventModel.find({ trail: objectIdTrailId }).sort(
-            descendQuery
-          );
+          events = await EventModel.find({ trail: objectIdTrailId })
+            .populate("creator")
+            .sort(ascendQuery);
           break;
       }
 
