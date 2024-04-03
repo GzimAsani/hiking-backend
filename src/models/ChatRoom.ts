@@ -10,6 +10,9 @@ const ChatRoom = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     }],
+    participantsName: [{
+      type: String
+    }],
     messages: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ChatMessage',

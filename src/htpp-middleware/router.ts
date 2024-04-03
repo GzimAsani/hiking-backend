@@ -141,15 +141,10 @@ router.post(
   HttpRequestHandlers.uploadProfilePicture
 );
 
-router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
+router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket);
 
+router.get('/chatRooms', HttpRequestHandlers.getAllChatRooms);
+router.get('/chatRooms/:chatRoomId', HttpRequestHandlers.getChatRoomById);
 
-router.post(
-  '/users/:userId/profilePicture',
-  pastTrailImageUpload.single('images'),
-  HttpRequestHandlers.uploadProfilePicture
-);
-
-router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket)
 
 export default router;

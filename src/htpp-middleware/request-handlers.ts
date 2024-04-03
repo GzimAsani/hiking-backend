@@ -14,6 +14,7 @@ import BlogsModel from '../models/Blogs';
 import { ReminderController } from '../controllers/reminder';
 import { ReviewController } from '../controllers/review';
 import ReviewsModel from '../models/Review';
+import { ChatRoomController } from '../controllers/chat-room';
 
 export class HttpRequestHandlers {
   static data = async (req: Request, res: Response) => {
@@ -1319,5 +1320,52 @@ export class HttpRequestHandlers {
       console.error('Error reading image from GridFS:', error);
       res.status(500).json({ error: 'Failed to read image' });
     });
+  };
+
+  static getAllChatRooms = async (req: Request, res: Response) => {
+    try {
+      const chatRoomController = new ChatRoomController();
+      const chatRooms = await chatRoomController.getAllChatRooms();
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(chatRooms));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
+  static getChatRoomById = async (req: Request, res: Response) => {
+    try {
+      const { chatRoomId } = req.params;
+      
+      if (!chatRoomId) {
+        res.writeHead(HTTP_CODE.BadRequest, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ error: 'Chat Room ID is required' }));
+        return;
+      }
+      const chatRoomController = new ChatRoomController();
+      const chatRoom = await chatRoomController.getChatRoomById(chatRoomId);
+      
+      if (!chatRoom) {
+        res.writeHead(HTTP_CODE.NotFound, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ message: `Chat Room ${chatRoom} not found` }));
+      } else {
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(chatRoom));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
   };
 }
