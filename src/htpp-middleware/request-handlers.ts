@@ -1,74 +1,74 @@
-import { UserController } from "../controllers/user";
-import { HTTP_CODE } from "../enums/http-status-codes";
-import { NextFunction, Request, Response } from "express";
-import { PastTrailsController } from "../controllers/user-trails";
-import { TrailController } from "../controllers/trail";
-import fs from "fs";
-import { promisify } from "util";
-import EventModel from "../models/Event";
-import { EventController } from "../controllers/event";
-import mongoose from "mongoose";
-import { Readable } from "stream";
-import { BlogsController } from "../controllers/blogs";
-import BlogsModel from "../models/Blogs";
-import { ReminderController } from "../controllers/reminder";
-import { ReviewController } from "../controllers/review";
-import ReviewsModel from "../models/Review";
-import TrailModel from "../models/Trail";
-import UserModel from "../models/User";
+import { UserController } from '../controllers/user';
+import { HTTP_CODE } from '../enums/http-status-codes';
+import { NextFunction, Request, Response } from 'express';
+import { PastTrailsController } from '../controllers/user-trails';
+import { TrailController } from '../controllers/trail';
+import fs from 'fs';
+import { promisify } from 'util';
+import EventModel from '../models/Event';
+import { EventController } from '../controllers/event';
+import mongoose from 'mongoose';
+import { Readable } from 'stream';
+import { BlogsController } from '../controllers/blogs';
+import BlogsModel from '../models/Blogs';
+import { ReminderController } from '../controllers/reminder';
+import { ReviewController } from '../controllers/review';
+import ReviewsModel from '../models/Review';
+import TrailModel from '../models/Trail';
+import UserModel from '../models/User';
 
 export class HttpRequestHandlers {
   static data = async (req: Request, res: Response) => {
     try {
       const userController = new UserController();
       const users = await userController.getUsers();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(users));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static getUser = async (req: Request, res: Response) => {
     try {
-      const userId = req.url?.split("/")[2];
+      const userId = req.url?.split('/')[2];
       if (!userId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "User ID is required" }));
+        res.end(JSON.stringify({ error: 'User ID is required' }));
         return;
       }
       const userController = new UserController();
       const user = await userController.getUserById(userId);
       if (!user) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `User ${userId} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(user));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static signup = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const userObj: any = JSON.parse(data);
 
@@ -76,21 +76,21 @@ export class HttpRequestHandlers {
         const result = await userController.signup(userObj);
 
         res.writeHead(HTTP_CODE.Created, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         //console.error('Error:', error);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -99,88 +99,88 @@ export class HttpRequestHandlers {
 
   static deleteUser = async (req: Request, res: Response) => {
     try {
-      const userId = req.url?.split("/")[2];
+      const userId = req.url?.split('/')[2];
       if (!userId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "User ID is required" }));
+        res.end(JSON.stringify({ error: 'User ID is required' }));
         return;
       }
       const userController = new UserController();
       await userController.deleteUser(userId);
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({ message: `User ${userId} deleted successfully` })
       );
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static getUserByEmail = async (req: Request, res: Response) => {
     try {
-      const urlParts = req.url?.split("/");
-      const userEmail = urlParts && urlParts.length >= 4 ? urlParts[3] : "";
+      const urlParts = req.url?.split('/');
+      const userEmail = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
 
       if (!userEmail) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "User email is required" }));
+        res.end(JSON.stringify({ error: 'User email is required' }));
         return;
       }
       const userController = new UserController();
       const user = await userController.getUserByEmail(userEmail);
       if (!user) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `User ${userEmail} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(user));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static login = async (req: Request, res: Response) => {
     // try {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const { email, password } = JSON.parse(data);
         const userController = new UserController();
         const result = await userController.login(email, password);
         res.writeHead(result.statusCode, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result.data));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         //console.error('Error:', error);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -199,12 +199,12 @@ export class HttpRequestHandlers {
       await userController.addFavoriteTrail(userId, trailId);
       res
         .status(HTTP_CODE.OK)
-        .json({ message: "Favorite trail added successfully" });
+        .json({ message: 'Favorite trail added successfully' });
     } catch (error) {
-      console.error("Error adding favorite trail:", error);
+      console.error('Error adding favorite trail:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to add favorite trail" });
+        .json({ error: 'Failed to add favorite trail' });
     }
   };
   static removeFavoriteTrail = async (req: Request, res: Response) => {
@@ -214,12 +214,12 @@ export class HttpRequestHandlers {
       await userController.removeFavoriteTrail(userId, trailId);
       res
         .status(HTTP_CODE.OK)
-        .json({ message: "Favorite trail removed successfully" });
+        .json({ message: 'Favorite trail removed successfully' });
     } catch (error) {
-      console.error("Error removing favorite trail:", error);
+      console.error('Error removing favorite trail:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to remove favorite trail" });
+        .json({ error: 'Failed to remove favorite trail' });
     }
   };
   static readFavoriteTrails = async (req: Request, res: Response) => {
@@ -227,43 +227,43 @@ export class HttpRequestHandlers {
       const { userId } = req.params;
       const userController = new UserController();
       const response = await userController.readFavoriteTrails(userId);
-      console.log("Response sent:", response);
+      console.log('Response sent:', response);
       res.status(HTTP_CODE.OK).json(response);
     } catch (error) {
-      res.status(HTTP_CODE.InternalServerError).json({ error: "Failed" });
+      res.status(HTTP_CODE.InternalServerError).json({ error: 'Failed' });
     }
   };
 
   static updateUser = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const userId = req.params.userId;
         const updatedFields = JSON.parse(data);
         if (!userId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: "User ID is required" }));
+          res.end(JSON.stringify({ error: 'User ID is required' }));
           return;
         }
         const userController = new UserController();
         const result = await userController.updateUser(userId, updatedFields);
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -274,14 +274,14 @@ export class HttpRequestHandlers {
     try {
       const reminderController = new ReminderController();
       const reminders = await reminderController.getAllReminders();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(reminders));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
@@ -291,9 +291,9 @@ export class HttpRequestHandlers {
 
       if (!reminderId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Reminder ID is required" }));
+        res.end(JSON.stringify({ error: 'Reminder ID is required' }));
         return;
       }
       const reminderController = new ReminderController();
@@ -301,21 +301,21 @@ export class HttpRequestHandlers {
 
       if (!reminder) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({ message: `Reminder ${reminderId} not found` })
         );
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(reminder));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static getUserReminders = async (req: Request, res: Response) => {
@@ -324,9 +324,9 @@ export class HttpRequestHandlers {
 
       if (!userId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "User ID is required" }));
+        res.end(JSON.stringify({ error: 'User ID is required' }));
         return;
       }
       const reminderController = new ReminderController();
@@ -334,19 +334,19 @@ export class HttpRequestHandlers {
 
       if (!reminders) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Reminders not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(reminders));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
@@ -359,7 +359,7 @@ export class HttpRequestHandlers {
       console.log(images);
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-        bucketName: "images",
+        bucketName: 'images',
       });
 
       for (const file of images) {
@@ -377,7 +377,7 @@ export class HttpRequestHandlers {
       }
 
       if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
+        return res.status(400).json({ error: 'User ID is required' });
       }
 
       const trailController = new PastTrailsController();
@@ -388,8 +388,8 @@ export class HttpRequestHandlers {
       );
       res.status(200).json(result);
     } catch (error) {
-      console.error("Error adding past trail:", error);
-      res.status(500).json({ error: "Failed to add past trail" });
+      console.error('Error adding past trail:', error);
+      res.status(500).json({ error: 'Failed to add past trail' });
     }
   };
 
@@ -397,24 +397,24 @@ export class HttpRequestHandlers {
     try {
       const { imageId } = req.params;
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-        bucketName: "images",
+        bucketName: 'images',
       });
 
       const file = await bucket.find({ filename: imageId }).toArray();
 
       if (!file || file.length === 0) {
-        return res.status(404).send("Image not found");
+        return res.status(404).send('Image not found');
       }
 
-      res.set("Access-Control-Allow-Origin", "*");
+      res.set('Access-Control-Allow-Origin', '*');
 
-      res.contentType("image/png");
+      res.contentType('image/png');
 
       const downloadStream = bucket.openDownloadStreamByName(imageId);
       downloadStream.pipe(res);
     } catch (error) {
       console.error(error);
-      res.status(500).send("Internal Server Error");
+      res.status(500).send('Internal Server Error');
     }
   };
 
@@ -424,14 +424,14 @@ export class HttpRequestHandlers {
       const trailController = new PastTrailsController();
       await trailController.removePastTrail(userId, trailId);
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Past trail removed successfully" }));
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Past trail removed successfully' }));
     } catch (error) {
-      console.error("Error removing past trail:", error);
+      console.error('Error removing past trail:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Failed to remove past trail" }));
+      res.end(JSON.stringify({ error: 'Failed to remove past trail' }));
     }
   };
 
@@ -442,10 +442,10 @@ export class HttpRequestHandlers {
       const trails = await userController.getPastTrails(userId);
       res.status(HTTP_CODE.OK).json({ trails: trails });
     } catch (error) {
-      console.error("Error reading past trails:", error);
+      console.error('Error reading past trails:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to read past trails" });
+        .json({ error: 'Failed to read past trails' });
     }
   };
 
@@ -463,10 +463,10 @@ export class HttpRequestHandlers {
         res.status(HTTP_CODE.OK).json(trail);
       }
     } catch (error) {
-      console.error("Error retrieving single past trail:", error);
+      console.error('Error retrieving single past trail:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to retrieve past trail" });
+        .json({ error: 'Failed to retrieve past trail' });
     }
   };
 
@@ -474,111 +474,111 @@ export class HttpRequestHandlers {
     try {
       const trailController = new TrailController();
       const trails = await trailController.getAllTrails();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(trails));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static getTrail = async (req: Request, res: Response) => {
     try {
-      const trailId = req.url?.split("/")[2];
+      const trailId = req.url?.split('/')[2];
       if (!trailId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "User ID is required" }));
+        res.end(JSON.stringify({ error: 'User ID is required' }));
         return;
       }
       const trailController = new TrailController();
       const trail = await trailController.getTrailById(trailId);
       if (!trail) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Trail ${trailId} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(trail));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static getTrailByName = async (req: Request, res: Response) => {
     try {
-      const urlParts = req.url?.split("/");
-      const trailName = urlParts && urlParts.length >= 4 ? urlParts[3] : "";
+      const urlParts = req.url?.split('/');
+      const trailName = urlParts && urlParts.length >= 4 ? urlParts[3] : '';
 
       if (!trailName) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Trail name is required" }));
+        res.end(JSON.stringify({ error: 'Trail name is required' }));
         return;
       }
       const trailController = new TrailController();
       const trail = await trailController.getTrailByName(trailName);
       if (!trail) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Trail ${trailName} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(trail));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static deleteTrail = async (req: Request, res: Response) => {
     try {
-      const trailId = req.url?.split("/")[2];
+      const trailId = req.url?.split('/')[2];
       if (!trailId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Trail ID is required" }));
+        res.end(JSON.stringify({ error: 'Trail ID is required' }));
         return;
       }
       const trailController = new TrailController();
       await trailController.deleteTrail(trailId);
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({ message: `Trail ${trailId} deleted successfully` })
       );
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static createTrail = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const trailObj: any = JSON.parse(data);
 
@@ -586,37 +586,37 @@ export class HttpRequestHandlers {
         const result = await trailController.createTrail(trailObj);
 
         res.writeHead(HTTP_CODE.Created, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result));
       } catch (err: any) {
         console.log(new Error(err).message);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
     });
   };
   static updateTrail = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const trailId = req.params.trailId;
         const updatedFields = JSON.parse(data);
         if (!trailId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: "Trail ID is required" }));
+          res.end(JSON.stringify({ error: 'Trail ID is required' }));
           return;
         }
         const trailController = new TrailController();
@@ -624,16 +624,16 @@ export class HttpRequestHandlers {
           trailId,
           updatedFields
         );
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
         console.log(new Error(err).message);
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -641,22 +641,22 @@ export class HttpRequestHandlers {
   };
 
   static rateAndReviewTrail = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const trailId = req.params.trailId;
         const userId = req.params.userId;
         const { rating, comment } = JSON.parse(data);
         if (!trailId || !userId || !rating || !comment) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
           res.end(
             JSON.stringify({
-              error: "Trail ID, User ID, Rating, and Comment are required",
+              error: 'Trail ID, User ID, Rating, and Comment are required',
             })
           );
           return;
@@ -668,35 +668,35 @@ export class HttpRequestHandlers {
           rating,
           comment
         );
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
         res.writeHead(HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Internal Server Error" }));
+        res.end(JSON.stringify({ error: 'Internal Server Error' }));
       }
     });
   };
 
   static updateRateAndReviewTrail = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const trailId = req.params.trailId;
         const userId = req.params.userId;
         const { rating, comment } = JSON.parse(data);
         if (!trailId || !userId || !rating || !comment) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
           res.end(
             JSON.stringify({
-              error: "Trail ID, User ID, Rating, and Comment are required",
+              error: 'Trail ID, User ID, Rating, and Comment are required',
             })
           );
           return;
@@ -708,14 +708,14 @@ export class HttpRequestHandlers {
           rating,
           comment
         );
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
         res.writeHead(HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Internal Server Error" }));
+        res.end(JSON.stringify({ error: 'Internal Server Error' }));
       }
     });
   };
@@ -725,12 +725,12 @@ export class HttpRequestHandlers {
       const { userId, trailId } = req.params;
       const trailController = new TrailController();
       await trailController.deleteReview(trailId, userId);
-      res.status(HTTP_CODE.OK).json({ message: "Review deleted successfully" });
+      res.status(HTTP_CODE.OK).json({ message: 'Review deleted successfully' });
     } catch (error) {
-      console.error("Error deleting review:", error);
+      console.error('Error deleting review:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to delete review" });
+        .json({ error: 'Failed to delete review' });
     }
   };
 
@@ -741,10 +741,10 @@ export class HttpRequestHandlers {
       const reviews = await trailController.getAllReivews(trailId);
       res.status(HTTP_CODE.OK).json(reviews);
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Internal Server Error" });
+        .json({ error: 'Internal Server Error' });
     }
   };
 
@@ -752,23 +752,23 @@ export class HttpRequestHandlers {
     try {
       const userController = new UserController();
       const users = await userController.getAllHikeBuddies();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(users));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static searchHikeBuddies = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const { fullName, location, skillLevel, gender } = JSON.parse(data);
 
@@ -780,14 +780,14 @@ export class HttpRequestHandlers {
           gender,
         });
 
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(hikeBuddies));
       } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
         res.writeHead(HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Internal Server Error" }));
+        res.end(JSON.stringify({ error: 'Internal Server Error' }));
       }
     });
   };
@@ -806,37 +806,37 @@ export class HttpRequestHandlers {
       const ascendQuery: any = { date: 1 };
 
       switch (mode) {
-        case "incoming":
+        case 'incoming':
           events = await EventModel.find({
             trail: objectIdTrailId,
             date: { $gte: currentDate },
           })
-            .populate("creator")
+            .populate('creator')
             .sort(ascendQuery);
           break;
-        case "past":
+        case 'past':
           events = await EventModel.find({
             trail: objectIdTrailId,
             date: { $lt: currentDate },
           })
-            .populate("creator")
+            .populate('creator')
             .sort(ascendQuery);
           break;
         default:
           events = await EventModel.find({ trail: objectIdTrailId })
-            .populate("creator")
+            .populate('creator')
             .sort(ascendQuery);
           break;
       }
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(events));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
@@ -845,18 +845,18 @@ export class HttpRequestHandlers {
       //-1 is desc / 1 is asc
 
       const allEvents = await EventModel.find()
-        .populate("creator", "firstName lastName")
-        .populate("trail")
+        .populate('creator', 'firstName lastName')
+        .populate('trail')
         .sort({ date: -1 });
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(allEvents));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
@@ -865,9 +865,9 @@ export class HttpRequestHandlers {
       const eventId = req.params.eventId;
       if (!eventId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Event ID is required" }));
+        res.end(JSON.stringify({ error: 'Event ID is required' }));
         return;
       }
       const eventController = new EventController();
@@ -875,28 +875,28 @@ export class HttpRequestHandlers {
 
       if (!event) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Event not found" }));
+        res.end(JSON.stringify({ error: 'Event not found' }));
         return;
       }
 
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(event));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static saveEvent = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const trailId = req.params.trailId;
         const creatorId = req.params.creatorId;
@@ -910,12 +910,12 @@ export class HttpRequestHandlers {
         );
 
         res.writeHead(HTTP_CODE.Created, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result));
         res
           .status(HTTP_CODE.Created)
-          .json({ message: "Event saved successfully", result });
+          .json({ message: 'Event saved successfully', result });
       } catch (err: any) {
         console.log(new Error(err).message);
 
@@ -937,47 +937,47 @@ export class HttpRequestHandlers {
       const event = await EventModel.findById(eventId);
 
       if (!event) {
-        res.status(HTTP_CODE.NotFound).json({ error: "Event not found" });
+        res.status(HTTP_CODE.NotFound).json({ error: 'Event not found' });
         return;
       }
 
       if (event.creator.toString() !== creatorId.toString()) {
         res
           .status(HTTP_CODE.Forbidden)
-          .json({ error: "You are not authorized to delete this event" });
+          .json({ error: 'You are not authorized to delete this event' });
         return;
       }
       await eventController.deleteEvent(eventId, creatorId);
-      res.status(HTTP_CODE.OK).json({ message: "Event deleted successfully" });
+      res.status(HTTP_CODE.OK).json({ message: 'Event deleted successfully' });
     } catch (error) {
-      console.error("Error deleting event:", error);
+      console.error('Error deleting event:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Internal Server Error" });
+        .json({ error: 'Internal Server Error' });
     }
   };
 
   static updateEventById = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const { eventId, creatorId } = req.params;
         const updatedFields = JSON.parse(data);
         if (!eventId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: "Event ID is required" }));
+          res.end(JSON.stringify({ error: 'Event ID is required' }));
           return;
         }
         if (!creatorId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: "Creator ID is required" }));
+          res.end(JSON.stringify({ error: 'Creator ID is required' }));
           return;
         }
         const eventController = new EventController();
@@ -986,16 +986,16 @@ export class HttpRequestHandlers {
           eventId,
           creatorId
         );
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
         console.log(new Error(err).message);
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -1008,12 +1008,12 @@ export class HttpRequestHandlers {
       await eventController.joinEvent(eventId, userId);
       res
         .status(HTTP_CODE.OK)
-        .json({ message: "User joined event successfully" });
+        .json({ message: 'User joined event successfully' });
     } catch (error) {
-      console.error("Error joining to event:", error);
+      console.error('Error joining to event:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to join event" });
+        .json({ error: 'Failed to join event' });
     }
   };
   static leaveEvent = async (req: Request, res: Response) => {
@@ -1023,12 +1023,12 @@ export class HttpRequestHandlers {
       await eventController.leaveEvent(eventId, userId);
       res
         .status(HTTP_CODE.OK)
-        .json({ message: "User left event successfully" });
+        .json({ message: 'User left event successfully' });
     } catch (error) {
-      console.error("Error leaving event:", error);
+      console.error('Error leaving event:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Failed to leave event" });
+        .json({ error: 'Failed to leave event' });
     }
   };
 
@@ -1039,11 +1039,11 @@ export class HttpRequestHandlers {
       const images = req.files as Express.Multer.File[];
 
       if (!authorId) {
-        return res.status(400).json({ error: "Author ID is required" });
+        return res.status(400).json({ error: 'Author ID is required' });
       }
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-        bucketName: "images",
+        bucketName: 'images',
       });
 
       for (const file of images) {
@@ -1064,83 +1064,100 @@ export class HttpRequestHandlers {
       const result = await blogController.saveBlog(authorId, blogData, images);
       res.status(200).json(result);
     } catch (error) {
-      console.error("Error adding blog post:", error);
-      res.status(500).json({ error: "Failed to add blog post" });
+      console.error('Error adding blog post:', error);
+      res.status(500).json({ error: 'Failed to add blog post' });
     }
   };
   static getAllBlogs = async (req: Request, res: Response) => {
     try {
       const blogsController = new BlogsController();
       const blogs = await blogsController.getBlogs();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(blogs));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
   static getBlogsById = async (req: Request, res: Response) => {
     try {
-      const blogId = req.url?.split("/")[2];
+      const blogId = req.url?.split('/')[2];
       if (!blogId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Blog ID is required" }));
+        res.end(JSON.stringify({ error: 'Blog ID is required' }));
         return;
       }
       const blog = await BlogsModel.findById(blogId);
 
       if (!blog) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Blog ${blogId} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(blog));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
+
+  static getBlogsByUser = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      console.log('User ID :', userId);
+      const blogsController = new BlogsController();
+      const blogs = await blogsController.getBlogsByUser(userId);
+      console.log('USERS BLOGS :', blogs);
+      res.status(HTTP_CODE.OK).json({ blogs: blogs });
+    } catch (error) {
+      console.error('Error reading past trails:', error);
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Failed to read past trails' });
+    }
+  };
+
   static updateBlog = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const blogId = req.params.blogId;
         const updatedFields = JSON.parse(data);
         if (!blogId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: "User ID is required" }));
+          res.end(JSON.stringify({ error: 'User ID is required' }));
           return;
         }
         const blogsController = new BlogsController();
         const result = await blogsController.updateBlog(blogId, updatedFields);
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -1154,23 +1171,23 @@ export class HttpRequestHandlers {
       const blogsController = new BlogsController();
 
       if (!blog) {
-        res.status(HTTP_CODE.NotFound).json({ error: "Blog not found" });
+        res.status(HTTP_CODE.NotFound).json({ error: 'Blog not found' });
         return;
       }
 
       if (blog.author.toString() !== authorId.toString()) {
         res
           .status(HTTP_CODE.Forbidden)
-          .json({ error: "You are not authorized to delete this blog" });
+          .json({ error: 'You are not authorized to delete this blog' });
         return;
       }
       await blogsController.deleteBlog(blogId, authorId);
-      res.status(HTTP_CODE.OK).json({ message: "Blog deleted successfully" });
+      res.status(HTTP_CODE.OK).json({ message: 'Blog deleted successfully' });
     } catch (error) {
-      console.error("Error deleting blog:", error);
+      console.error('Error deleting blog:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Internal Server Error" });
+        .json({ error: 'Internal Server Error' });
     }
   };
 
@@ -1178,72 +1195,72 @@ export class HttpRequestHandlers {
     try {
       const reviewController = new ReviewController();
       const reviews = await reviewController.getReviews();
-      res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(reviews));
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static getAllReviewsById = async (req: Request, res: Response) => {
     try {
-      const reviewId = req.url?.split("/")[2];
+      const reviewId = req.url?.split('/')[2];
       if (!reviewId) {
         res.writeHead(HTTP_CODE.BadRequest, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ error: "Review ID is required" }));
+        res.end(JSON.stringify({ error: 'Review ID is required' }));
         return;
       }
       const blog = await BlogsModel.findById(reviewId);
 
       if (!blog) {
         res.writeHead(HTTP_CODE.NotFound, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify({ message: `Review ${reviewId} not found` }));
       } else {
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(blog));
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       res.writeHead(HTTP_CODE.InternalServerError, {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       });
-      res.end(JSON.stringify({ error: "Internal Server Error" }));
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
 
   static saveReviews = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const reviewsObj: any = JSON.parse(data);
         const reviewController = new ReviewController();
         const result = await reviewController.saveReview(reviewsObj);
 
         res.writeHead(HTTP_CODE.Created, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(JSON.stringify(result));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -1257,41 +1274,41 @@ export class HttpRequestHandlers {
       const reviewController = new ReviewController();
 
       if (!review) {
-        res.status(HTTP_CODE.NotFound).json({ error: "Review not found" });
+        res.status(HTTP_CODE.NotFound).json({ error: 'Review not found' });
         return;
       }
 
       if (review.author.toString() !== authorId.toString()) {
         res
           .status(HTTP_CODE.Forbidden)
-          .json({ error: "You are not authorized to delete this review" });
+          .json({ error: 'You are not authorized to delete this review' });
         return;
       }
       await reviewController.deleteReview(reviewId, authorId);
-      res.status(HTTP_CODE.OK).json({ message: "Review deleted successfully" });
+      res.status(HTTP_CODE.OK).json({ message: 'Review deleted successfully' });
     } catch (error) {
-      console.error("Error deleting blog:", error);
+      console.error('Error deleting blog:', error);
       res
         .status(HTTP_CODE.InternalServerError)
-        .json({ error: "Internal Server Error" });
+        .json({ error: 'Internal Server Error' });
     }
   };
 
   static updateReview = async (req: Request, res: Response) => {
-    let data = "";
-    req.on("data", (chunk) => {
+    let data = '';
+    req.on('data', (chunk) => {
       data += chunk;
     });
-    req.on("end", async () => {
+    req.on('end', async () => {
       try {
         const reviewId = req.params.reviewId;
         const updateReview = JSON.parse(data);
         if (!reviewId) {
           res.writeHead(HTTP_CODE.BadRequest, {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           });
           res.end(
-            JSON.stringify({ error: "Review ID is required or miss typed" })
+            JSON.stringify({ error: 'Review ID is required or miss typed' })
           );
           return;
         }
@@ -1300,18 +1317,18 @@ export class HttpRequestHandlers {
           reviewId,
           updateReview
         );
-        res.writeHead(HTTP_CODE.OK, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
-        console.log("AFTER THIS ERROR SHOULD APPEAR");
+        console.log('AFTER THIS ERROR SHOULD APPEAR');
         console.log(new Error(err).message);
 
         res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         });
         res.end(
           JSON.stringify({
-            error: err.message ? err.message : "Internal Server Error",
+            error: err.message ? err.message : 'Internal Server Error',
           })
         );
       }
@@ -1324,7 +1341,7 @@ export class HttpRequestHandlers {
       const image = req.file as Express.Multer.File;
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-        bucketName: "images",
+        bucketName: 'images',
       });
 
       const uploadStream = bucket.openUploadStream(image.filename);
@@ -1333,17 +1350,17 @@ export class HttpRequestHandlers {
       readableStream.push(null);
 
       if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
+        return res.status(400).json({ error: 'User ID is required' });
       }
 
       const userController = new UserController();
       const result = await userController.uploadProfilePicture(userId, image);
       res.status(200).json(result);
     } catch (error) {
-      console.error("Error handling profile picture upload:", error);
+      console.error('Error handling profile picture upload:', error);
       res
         .status(500)
-        .json({ error: "Failed to handle profile picture upload" });
+        .json({ error: 'Failed to handle profile picture upload' });
     }
   };
 
@@ -1354,7 +1371,7 @@ export class HttpRequestHandlers {
   ) => {
     const filename = req.params.filename;
     const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: "images",
+      bucketName: 'images',
     });
 
     const downloadStream = bucket.openDownloadStreamByName(filename);
@@ -1362,19 +1379,19 @@ export class HttpRequestHandlers {
 
     let imageData = Buffer.from([]);
 
-    downloadStream.on("data", (chunk) => {
+    downloadStream.on('data', (chunk) => {
       imageData = Buffer.concat([imageData, chunk]);
     });
 
-    downloadStream.on("end", () => {
-      res.set("Access-Control-Allow-Origin", "*");
-      res.set("Content-Type", "image/jpeg");
+    downloadStream.on('end', () => {
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set('Content-Type', 'image/jpeg');
       res.send(imageData);
     });
 
-    downloadStream.on("error", (error) => {
-      console.error("Error reading image from GridFS:", error);
-      res.status(500).json({ error: "Failed to read image" });
+    downloadStream.on('error', (error) => {
+      console.error('Error reading image from GridFS:', error);
+      res.status(500).json({ error: 'Failed to read image' });
     });
   };
 }
