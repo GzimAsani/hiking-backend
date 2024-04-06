@@ -153,6 +153,7 @@ router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket);
 
 router.get('/chatRooms', HttpRequestHandlers.getAllChatRooms);
 router.get('/chatRooms/:chatRoomId', HttpRequestHandlers.getChatRoomById);
-
+router.post('/sendMessage/:chatRoomId/:senderId', HttpRequestHandlers.sendMessage);
+router.get('/chatRoomMessages/:chatRoomId', HttpRequestHandlers.getAllMessagesInAChatRoom);
 
 export default router;
