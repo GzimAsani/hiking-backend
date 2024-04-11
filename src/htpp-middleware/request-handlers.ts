@@ -1397,7 +1397,7 @@ export class HttpRequestHandlers {
     });
   };
 
-  static defineRoleHandler = async (req: Request, res: Response) => {
+  static defineRoleHandler = async (req: Request<{ userId: any }, any>, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
@@ -1426,7 +1426,7 @@ export class HttpRequestHandlers {
     });
   };
   
-  static grantPermissionHandler = async (req: Request, res: Response) => {
+  static grantPermissionHandler = async (req: Request<{ userId: any }, any>, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
@@ -1486,7 +1486,7 @@ export class HttpRequestHandlers {
   
   static listPermissionsHandler = async (req: Request, res: Response) => {
     try {
-      const result = await AdminController.listPermissions(req, res);
+      const result = await AdminController.listPermissions();
   
       res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(result));
