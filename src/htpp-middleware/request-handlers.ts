@@ -16,6 +16,8 @@ import { ReviewController } from '../controllers/review';
 import ReviewsModel from '../models/Review';
 import TrailModel from '../models/Trail';
 import UserModel from '../models/User';
+import { AccessController } from '../controllers/accessController';
+import { AdminController } from '../controllers/admin';
 
 export class HttpRequestHandlers {
   static data = async (req: Request, res: Response) => {
@@ -1393,5 +1395,112 @@ export class HttpRequestHandlers {
       console.error('Error reading image from GridFS:', error);
       res.status(500).json({ error: 'Failed to read image' });
     });
+  };
+
+  static defineRoleHandler = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { userId } = req.params;
+        const { role } = JSON.parse(data);
+  
+        const result = await AdminController.defineRole(userId, role);
+  
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message);
+  
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+  
+  static grantPermissionHandler = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { userId } = req.params;
+        const { permission } = JSON.parse(data);
+  
+        const result = await AdminController.grantPermission(userId, permission);
+  
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message);
+  
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+  
+  static revokePermissionHandler = async (req: Request, res: Response) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { userId } = req.params;
+        const { permission } = JSON.parse(data);
+  
+        const result = await AdminController.revokePermission(userId, permission);
+  
+        res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err: any) {
+        console.log(new Error(err).message);
+  
+        res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+          'Content-Type': 'application/json',
+        });
+        res.end(
+          JSON.stringify({
+            error: err.message ? err.message : 'Internal Server Error',
+          })
+        );
+      }
+    });
+  };
+  
+  static listPermissionsHandler = async (req: Request, res: Response) => {
+    try {
+      const result = await AdminController.listPermissions(req, res);
+  
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(result));
+    } catch (err: any) {
+      console.log(new Error(err).message);
+  
+      res.writeHead(err?.code ? err?.code : HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(
+        JSON.stringify({
+          error: err.message ? err.message : 'Internal Server Error',
+        })
+      );
+    }
   };
 }

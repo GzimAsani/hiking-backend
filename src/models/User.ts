@@ -50,6 +50,14 @@ const User = new mongoose.Schema({
     enum: ['male', 'female'],
     default: null
   },
+  role: {
+    type: String,
+    default: 'user'
+  },
+  permissions:{
+    type: Object,
+    default: null
+  },
   location: {
     type: String,
     default: null

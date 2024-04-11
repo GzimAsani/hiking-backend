@@ -159,4 +159,11 @@ router.post(
 
 router.get('/images/:filename', HttpRequestHandlers.readImageFromBucket);
 
+
+router.post('/define-role/:userId', HttpRequestHandlers.defineRoleHandler);
+router.post('/grant-permission/:userId', HttpRequestHandlers.grantPermissionHandler);
+router.post('/revoke-permission/:userId', HttpRequestHandlers.revokePermissionHandler);
+router.get('/permissions', HttpRequestHandlers.listPermissionsHandler);
+
+
 export default router;
