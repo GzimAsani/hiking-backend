@@ -811,7 +811,7 @@ export class HttpRequestHandlers {
             trail: objectIdTrailId,
             date: { $gte: currentDate },
           })
-            .populate('creator')
+            .populate('creator').populate('trail')
             .sort(ascendQuery);
           break;
         case 'past':
@@ -819,12 +819,12 @@ export class HttpRequestHandlers {
             trail: objectIdTrailId,
             date: { $lt: currentDate },
           })
-            .populate('creator')
+            .populate('creator').populate('trail')
             .sort(ascendQuery);
           break;
         default:
           events = await EventModel.find({ trail: objectIdTrailId })
-            .populate('creator')
+            .populate('creator').populate('trail')
             .sort(ascendQuery);
           break;
       }
