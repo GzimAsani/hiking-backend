@@ -14,6 +14,8 @@ import BlogsModel from '../models/Blogs';
 import { ReminderController } from '../controllers/reminder';
 import { ReviewController } from '../controllers/review';
 import ReviewsModel from '../models/Review';
+import TrailModel from '../models/Trail';
+import UserModel from '../models/User';
 
 export class HttpRequestHandlers {
   static data = async (req: Request, res: Response) => {
@@ -286,7 +288,7 @@ export class HttpRequestHandlers {
   static getReminderById = async (req: Request, res: Response) => {
     try {
       const { reminderId } = req.params;
-      
+
       if (!reminderId) {
         res.writeHead(HTTP_CODE.BadRequest, {
           'Content-Type': 'application/json',
@@ -296,12 +298,14 @@ export class HttpRequestHandlers {
       }
       const reminderController = new ReminderController();
       const reminder = await reminderController.getReminderById(reminderId);
-      
+
       if (!reminder) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
         });
-        res.end(JSON.stringify({ message: `Reminder ${reminderId} not found` }));
+        res.end(
+          JSON.stringify({ message: `Reminder ${reminderId} not found` })
+        );
       } else {
         res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(reminder));
@@ -317,7 +321,7 @@ export class HttpRequestHandlers {
   static getUserReminders = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      
+
       if (!userId) {
         res.writeHead(HTTP_CODE.BadRequest, {
           'Content-Type': 'application/json',
@@ -327,7 +331,7 @@ export class HttpRequestHandlers {
       }
       const reminderController = new ReminderController();
       const reminders = await reminderController.getUserReminders(userId);
-      
+
       if (!reminders) {
         res.writeHead(HTTP_CODE.NotFound, {
           'Content-Type': 'application/json',
@@ -353,7 +357,6 @@ export class HttpRequestHandlers {
       const images = req.files as Express.Multer.File[];
 
       console.log(images);
-      
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: 'images',
@@ -791,12 +794,61 @@ export class HttpRequestHandlers {
 
   // Import your models
 
+  static getAllEventsByTrailId = async (req: Request, res: Response) => {
+    try {
+      const { trailId } = req.params;
+      const { mode } = req.query; // Accessing the mode query parameter
+      const objectIdTrailId = new mongoose.Types.ObjectId(trailId);
+      let events: any = [];
+      const currentDate = new Date();
+
+      // const descendQuery: any = { date: -1 };
+      const ascendQuery: any = { date: 1 };
+
+      switch (mode) {
+        case 'incoming':
+          events = await EventModel.find({
+            trail: objectIdTrailId,
+            date: { $gte: currentDate },
+          })
+            .populate('creator').populate('trail')
+            .sort(ascendQuery);
+          break;
+        case 'past':
+          events = await EventModel.find({
+            trail: objectIdTrailId,
+            date: { $lt: currentDate },
+          })
+            .populate('creator').populate('trail')
+            .sort(ascendQuery);
+          break;
+        default:
+          events = await EventModel.find({ trail: objectIdTrailId })
+            .populate('creator').populate('trail')
+            .sort(ascendQuery);
+          break;
+      }
+
+      res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(events));
+    } catch (error) {
+      console.error('Error:', error);
+      res.writeHead(HTTP_CODE.InternalServerError, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+    }
+  };
+
   static getAllEvents = async (req: Request, res: Response) => {
     try {
-      const allEvents = await EventModel.find().populate(
-        'creator',
-        'firstName lastName'
-      );
+      //-1 is desc / 1 is asc
+
+      const allEvents = await EventModel.find()
+        .populate('creator', 'firstName lastName')
+        .populate('trail')
+        .sort({ date: -1 });
+
       res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(allEvents));
     } catch (error) {
@@ -979,13 +1031,13 @@ export class HttpRequestHandlers {
         .json({ error: 'Failed to leave event' });
     }
   };
-  
+
   static saveBlog = async (req: Request, res: Response) => {
     try {
       const { authorId } = req.params;
       const blogData = req.body;
       const images = req.files as Express.Multer.File[];
-    
+
       if (!authorId) {
         return res.status(400).json({ error: 'Author ID is required' });
       }
@@ -1007,14 +1059,9 @@ export class HttpRequestHandlers {
         readableStream.push(file.buffer);
         readableStream.push(null);
       }
-      
 
       const blogController = new BlogsController();
-      const result = await blogController.saveBlog(
-        authorId,
-        blogData,
-        images
-      );
+      const result = await blogController.saveBlog(authorId, blogData, images);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error adding blog post:', error);
@@ -1064,6 +1111,23 @@ export class HttpRequestHandlers {
       res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   };
+
+  static getBlogsByUser = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      console.log('User ID :', userId);
+      const blogsController = new BlogsController();
+      const blogs = await blogsController.getBlogsByUser(userId);
+      console.log('USERS BLOGS :', blogs);
+      res.status(HTTP_CODE.OK).json({ blogs: blogs });
+    } catch (error) {
+      console.error('Error reading past trails:', error);
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Failed to read past trails' });
+    }
+  };
+
   static updateBlog = async (req: Request, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {
@@ -1100,8 +1164,6 @@ export class HttpRequestHandlers {
     });
   };
 
-
-
   static deleteBlogById = async (req: Request, res: Response) => {
     try {
       const { blogId, authorId } = req.params;
@@ -1123,7 +1185,9 @@ export class HttpRequestHandlers {
       res.status(HTTP_CODE.OK).json({ message: 'Blog deleted successfully' });
     } catch (error) {
       console.error('Error deleting blog:', error);
-      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Internal Server Error' });
     }
   };
 
@@ -1215,18 +1279,20 @@ export class HttpRequestHandlers {
       }
 
       if (review.author.toString() !== authorId.toString()) {
-        res.status(HTTP_CODE.Forbidden).json({ error: 'You are not authorized to delete this review' });
+        res
+          .status(HTTP_CODE.Forbidden)
+          .json({ error: 'You are not authorized to delete this review' });
         return;
       }
       await reviewController.deleteReview(reviewId, authorId);
       res.status(HTTP_CODE.OK).json({ message: 'Review deleted successfully' });
-
     } catch (error) {
       console.error('Error deleting blog:', error);
-      res.status(HTTP_CODE.InternalServerError).json({ error: 'Internal Server Error' });
+      res
+        .status(HTTP_CODE.InternalServerError)
+        .json({ error: 'Internal Server Error' });
     }
   };
-
 
   static updateReview = async (req: Request, res: Response) => {
     let data = '';
@@ -1241,11 +1307,16 @@ export class HttpRequestHandlers {
           res.writeHead(HTTP_CODE.BadRequest, {
             'Content-Type': 'application/json',
           });
-          res.end(JSON.stringify({ error: 'Review ID is required or miss typed' }));
+          res.end(
+            JSON.stringify({ error: 'Review ID is required or miss typed' })
+          );
           return;
         }
         const reviewController = new ReviewController();
-        const result = await reviewController.updateReview(reviewId, updateReview);
+        const result = await reviewController.updateReview(
+          reviewId,
+          updateReview
+        );
         res.writeHead(HTTP_CODE.OK, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err: any) {
@@ -1267,13 +1338,12 @@ export class HttpRequestHandlers {
   static uploadProfilePicture = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const image = req.file as Express.Multer.File; 
-      
+      const image = req.file as Express.Multer.File;
 
       const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
         bucketName: 'images',
       });
-  
+
       const uploadStream = bucket.openUploadStream(image.filename);
       const readableStream = new Readable();
       readableStream.push(image.buffer);
@@ -1288,23 +1358,27 @@ export class HttpRequestHandlers {
       res.status(200).json(result);
     } catch (error) {
       console.error('Error handling profile picture upload:', error);
-      res.status(500).json({ error: 'Failed to handle profile picture upload' });
+      res
+        .status(500)
+        .json({ error: 'Failed to handle profile picture upload' });
     }
   };
 
-
-  static readImageFromBucket = async (req: Request, res: Response, next: NextFunction) => {
+  static readImageFromBucket = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     const filename = req.params.filename;
     const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
       bucketName: 'images',
     });
-  
+
     const downloadStream = bucket.openDownloadStreamByName(filename);
     console.log(downloadStream);
-    
-  
+
     let imageData = Buffer.from([]);
-  
+
     downloadStream.on('data', (chunk) => {
       imageData = Buffer.concat([imageData, chunk]);
     });
@@ -1314,7 +1388,7 @@ export class HttpRequestHandlers {
       res.set('Content-Type', 'image/jpeg');
       res.send(imageData);
     });
-  
+
     downloadStream.on('error', (error) => {
       console.error('Error reading image from GridFS:', error);
       res.status(500).json({ error: 'Failed to read image' });
