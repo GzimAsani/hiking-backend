@@ -1397,7 +1397,7 @@ export class HttpRequestHandlers {
     });
   };
 
-  static defineRoleHandler = async (req: Request<{ userId: any }, any>, res: Response) => {
+  static defineRoleHandler = async (req: Request, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
@@ -1426,7 +1426,7 @@ export class HttpRequestHandlers {
     });
   };
   
-  static grantPermissionHandler = async (req: Request<{ userId: any }, any>, res: Response) => {
+  static grantPermissionHandler = async (req: Request, res: Response) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
