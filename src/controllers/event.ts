@@ -4,6 +4,7 @@ import TrailModel from "../models/Trail";
 import UserModel from "../models/User";
 import mongoose from "mongoose";
 import { ReminderController } from "./reminder";
+import { ChatRoomController } from "./chat-room";
 
 export class EventController {
     async saveEvent(eventObj: any, trailId: any, creatorId: any) {
@@ -57,6 +58,9 @@ export class EventController {
                 reminderDate: creatorReminderDate,
                 message: creatorMessage,
             });
+
+            const chatRoomController = new ChatRoomController();
+            await chatRoomController.createJoinChatRoom(newEvent._id, creatorId);
     
             return newEvent;
         } catch (error) {
@@ -104,6 +108,9 @@ export class EventController {
                 (e) => e.toString() !== eventId.toString()
             );
             await user.save();
+
+            const chatRoomController = new ChatRoomController();
+            await chatRoomController.deleteChatRoom(eventId);
 
             return { message: "Event deleted successfully" };
         } catch (error) {
@@ -246,6 +253,9 @@ export class EventController {
                 message: creatorMessage,
             });
 
+            const chatRoomController = new ChatRoomController();
+            await chatRoomController.createJoinChatRoom(eventId, userId);
+
             return { message: "User joined the event successfully", event };
         } catch (error) {
             console.error("Error joining event:", error);
@@ -302,6 +312,9 @@ export class EventController {
                 (eventId) => eventId.toString() !== eventIdObject.toString()
             );
             await user.save();
+
+            const chatRoomController = new ChatRoomController();
+            await chatRoomController.leaveChatRoom(eventId, userId);
 
             return { message: "User left the event successfully", event };
         } catch (error) {
